@@ -182,7 +182,7 @@ export function Background() {
   return (
     <div className="absolute top-0 -z-10 w-full h-screen bg-background overflow-hidden">
       <div className="absolute w-full flex flex-col animate-scroll">
-        <div className="px-4 gap-4 columns-xs">
+        <div className="px-4 gap-4 columns-[18rem]">
           {artworks.map((artwork) => (
             <img
               key={artwork.id}

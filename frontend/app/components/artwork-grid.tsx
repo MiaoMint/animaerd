@@ -1,6 +1,6 @@
 "use client";
 
-import { ComponentProps, ReactNode, useState } from "react";
+import { ComponentProps, ReactNode, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { Download, Loader } from "lucide-react";
@@ -9,11 +9,11 @@ import { MasonryInfiniteGrid } from "@egjs/react-infinitegrid";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useInView } from "react-intersection-observer";
 
 interface ArtworkGridProps {
   username?: string;
 }
-
 
 export function ArtworkGrid({ username }: ArtworkGridProps) {
   const [artworks, setArtworks] = useState<ArtworkResponse[]>([]);
@@ -21,11 +21,21 @@ export function ArtworkGrid({ username }: ArtworkGridProps) {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
+
+  useEffect(() => {
+    if (inView) {
+      fetchArtworks();
+    }
+  }, [inView]);
+
   const fetchArtworks = async () => {
-    if (loading) return;
+    if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const response = await artworkApi.getArtworks(page, 10, username);
+      const response = await artworkApi.getArtworks(page, 20, username);
       if (response.data === null) {
         setHasMore(false);
         return;
@@ -49,25 +59,26 @@ export function ArtworkGrid({ username }: ArtworkGridProps) {
     <div>
       <MasonryInfiniteGrid
         className="w-full"
-        onRequestAppend={fetchArtworks}
         align={"center"}
         autoResize={true}
       >
         {artworks.map((artwork, index) => (
-          <Item key={index} artwork={artwork} index={index} />
+          <Item key={artwork.id} artwork={artwork} index={index} />
         ))}
       </MasonryInfiniteGrid>
 
-      {hasMore && (
-        <div className="flex justify-center py-4">
-          <Loader className="animate-spin" />
-        </div>
-      )}
-      {!hasMore && (
-        <div className="flex justify-center py-4">
-          <p className="text-gray-500">No more artworks to show</p>
-        </div>
-      )}
+      <div ref={ref}>
+        {loading && (
+          <div className="flex justify-center py-4">
+            <Loader className="animate-spin" />
+          </div>
+        )}
+        {!hasMore && !loading && (
+          <div className="flex justify-center py-4">
+            <p className="text-gray-500">No more artworks to show</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
