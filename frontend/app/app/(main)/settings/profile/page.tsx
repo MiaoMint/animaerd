@@ -30,7 +30,10 @@ const profileFormSchema = z.object({
       "Username can only contain letters, numbers, - and _"
     ),
   displayName: z.string().min(2).max(30),
-  avatar: z.instanceof(File).optional(),
+  avatar: z
+    .unknown()
+    .transform((value) => value as File)
+    .optional(),
   bio: z.string().max(160).optional(),
 });
 

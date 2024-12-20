@@ -36,7 +36,7 @@ export default function AuthPage() {
         className="lg:w-[500px] flex-shrink-0 flex flex-col items-center justify-center p-6 lg:p-0 bg-white/80 dark:bg-black/80 backdrop-blur-md backdrop:opacity-25"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 ,delay: 1}}
+        transition={{ duration: 0.6, delay: 1 }}
       >
         <motion.div
           className="space-y-4"
@@ -154,7 +154,7 @@ export default function AuthPage() {
   );
 }
 
-export function Background() {
+function Background() {
   const [artworks, setArtworks] = useState<ArtworkResponse[]>([]);
 
   const fetchArtworks = async () => {
