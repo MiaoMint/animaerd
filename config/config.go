@@ -32,7 +32,10 @@ type Config struct {
 
 func InitConfig() {
 	err := cleanenv.ReadConfig("config.yml", &C)
-	if err != nil {
-		log.Error(err)
+	if err == nil {
+		return
+	}
+	if err = cleanenv.ReadEnv(&C); err != nil {
+		log.Fatal("Error loading config", err)
 	}
 }
