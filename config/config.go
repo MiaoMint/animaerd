@@ -14,6 +14,7 @@ type Config struct {
 	DatabaseSourceURL          string `yaml:"database_source_url" env:"DATABASE_SOURCE_URL"`
 	RedisHost                  string `yaml:"redis_host" env:"REDIS_HOST"`
 	RedisPort                  int    `yaml:"redis_port" env:"REDIS_PORT"`
+	RedisPassword              string `yaml:"redis_password" env:"REDIS_PASSWORD"`
 	R2S3AccountID              string `yaml:"r2s3_account_id" env:"R2S3_ACCOUNT_ID"`
 	R2S3AccessKeyID            string `yaml:"r2s3_access_key_id" env:"R2S3_ACCESS_KEY_ID"`
 	R2S3AccessSecretKey        string `yaml:"r2s3_access_secret_key" env:"R2S3_ACCESS_SECRET_KEY"`

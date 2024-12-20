@@ -59,6 +59,7 @@ func RedisStore() *redis.Storage {
 		Database:  0,
 		Reset:     false,
 		TLSConfig: nil,
+		Password:  config.C.RedisPassword,
 		PoolSize:  10 * runtime.GOMAXPROCS(0),
 	})
 
