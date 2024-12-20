@@ -10,8 +10,10 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/predicate"
 	"github.com/MiaoMint/animaerd/ent/user"
 )
@@ -199,6 +201,24 @@ func (uu *UserUpdate) SetNillableIsLikesPublic(b *bool) *UserUpdate {
 	return uu
 }
 
+// SetRecentTags sets the "recent_tags" field.
+func (uu *UserUpdate) SetRecentTags(s []string) *UserUpdate {
+	uu.mutation.SetRecentTags(s)
+	return uu
+}
+
+// AppendRecentTags appends s to the "recent_tags" field.
+func (uu *UserUpdate) AppendRecentTags(s []string) *UserUpdate {
+	uu.mutation.AppendRecentTags(s)
+	return uu
+}
+
+// ClearRecentTags clears the value of the "recent_tags" field.
+func (uu *UserUpdate) ClearRecentTags() *UserUpdate {
+	uu.mutation.ClearRecentTags()
+	return uu
+}
+
 // AddArtworkIDs adds the "artworks" edge to the Artwork entity by IDs.
 func (uu *UserUpdate) AddArtworkIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddArtworkIDs(ids...)
@@ -229,21 +249,6 @@ func (uu *UserUpdate) AddLikedArtworks(a ...*Artwork) *UserUpdate {
 	return uu.AddLikedArtworkIDs(ids...)
 }
 
-// AddFavoriteIDs adds the "favorites" edge to the Artwork entity by IDs.
-func (uu *UserUpdate) AddFavoriteIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddFavoriteIDs(ids...)
-	return uu
-}
-
-// AddFavorites adds the "favorites" edges to the Artwork entity.
-func (uu *UserUpdate) AddFavorites(a ...*Artwork) *UserUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return uu.AddFavoriteIDs(ids...)
-}
-
 // AddFollowerIDs adds the "followers" edge to the User entity by IDs.
 func (uu *UserUpdate) AddFollowerIDs(ids ...int) *UserUpdate {
 	uu.mutation.AddFollowerIDs(ids...)
@@ -272,6 +277,36 @@ func (uu *UserUpdate) AddFollowing(u ...*User) *UserUpdate {
 		ids[i] = u[i].ID
 	}
 	return uu.AddFollowingIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (uu *UserUpdate) AddCommentIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddCommentIDs(ids...)
+	return uu
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (uu *UserUpdate) AddComments(c ...*Comment) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddCommentIDs(ids...)
+}
+
+// AddLikedCommentIDs adds the "liked_comments" edge to the Comment entity by IDs.
+func (uu *UserUpdate) AddLikedCommentIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddLikedCommentIDs(ids...)
+	return uu
+}
+
+// AddLikedComments adds the "liked_comments" edges to the Comment entity.
+func (uu *UserUpdate) AddLikedComments(c ...*Comment) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.AddLikedCommentIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -321,27 +356,6 @@ func (uu *UserUpdate) RemoveLikedArtworks(a ...*Artwork) *UserUpdate {
 	return uu.RemoveLikedArtworkIDs(ids...)
 }
 
-// ClearFavorites clears all "favorites" edges to the Artwork entity.
-func (uu *UserUpdate) ClearFavorites() *UserUpdate {
-	uu.mutation.ClearFavorites()
-	return uu
-}
-
-// RemoveFavoriteIDs removes the "favorites" edge to Artwork entities by IDs.
-func (uu *UserUpdate) RemoveFavoriteIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveFavoriteIDs(ids...)
-	return uu
-}
-
-// RemoveFavorites removes "favorites" edges to Artwork entities.
-func (uu *UserUpdate) RemoveFavorites(a ...*Artwork) *UserUpdate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return uu.RemoveFavoriteIDs(ids...)
-}
-
 // ClearFollowers clears all "followers" edges to the User entity.
 func (uu *UserUpdate) ClearFollowers() *UserUpdate {
 	uu.mutation.ClearFollowers()
@@ -382,6 +396,48 @@ func (uu *UserUpdate) RemoveFollowing(u ...*User) *UserUpdate {
 		ids[i] = u[i].ID
 	}
 	return uu.RemoveFollowingIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (uu *UserUpdate) ClearComments() *UserUpdate {
+	uu.mutation.ClearComments()
+	return uu
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (uu *UserUpdate) RemoveCommentIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveCommentIDs(ids...)
+	return uu
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (uu *UserUpdate) RemoveComments(c ...*Comment) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveCommentIDs(ids...)
+}
+
+// ClearLikedComments clears all "liked_comments" edges to the Comment entity.
+func (uu *UserUpdate) ClearLikedComments() *UserUpdate {
+	uu.mutation.ClearLikedComments()
+	return uu
+}
+
+// RemoveLikedCommentIDs removes the "liked_comments" edge to Comment entities by IDs.
+func (uu *UserUpdate) RemoveLikedCommentIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveLikedCommentIDs(ids...)
+	return uu
+}
+
+// RemoveLikedComments removes "liked_comments" edges to Comment entities.
+func (uu *UserUpdate) RemoveLikedComments(c ...*Comment) *UserUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uu.RemoveLikedCommentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -497,6 +553,17 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.IsLikesPublic(); ok {
 		_spec.SetField(user.FieldIsLikesPublic, field.TypeBool, value)
 	}
+	if value, ok := uu.mutation.RecentTags(); ok {
+		_spec.SetField(user.FieldRecentTags, field.TypeJSON, value)
+	}
+	if value, ok := uu.mutation.AppendedRecentTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldRecentTags, value)
+		})
+	}
+	if uu.mutation.RecentTagsCleared() {
+		_spec.ClearField(user.FieldRecentTags, field.TypeJSON)
+	}
 	if uu.mutation.ArtworksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -577,51 +644,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Inverse: false,
 			Table:   user.LikedArtworksTable,
 			Columns: user.LikedArtworksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uu.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FavoritesTable,
-			Columns: user.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.RemovedFavoritesIDs(); len(nodes) > 0 && !uu.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FavoritesTable,
-			Columns: user.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.FavoritesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FavoritesTable,
-			Columns: user.FavoritesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
@@ -715,6 +737,96 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !uu.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.LikedCommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.LikedCommentsTable,
+			Columns: user.LikedCommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedLikedCommentsIDs(); len(nodes) > 0 && !uu.mutation.LikedCommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.LikedCommentsTable,
+			Columns: user.LikedCommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.LikedCommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.LikedCommentsTable,
+			Columns: user.LikedCommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -912,6 +1024,24 @@ func (uuo *UserUpdateOne) SetNillableIsLikesPublic(b *bool) *UserUpdateOne {
 	return uuo
 }
 
+// SetRecentTags sets the "recent_tags" field.
+func (uuo *UserUpdateOne) SetRecentTags(s []string) *UserUpdateOne {
+	uuo.mutation.SetRecentTags(s)
+	return uuo
+}
+
+// AppendRecentTags appends s to the "recent_tags" field.
+func (uuo *UserUpdateOne) AppendRecentTags(s []string) *UserUpdateOne {
+	uuo.mutation.AppendRecentTags(s)
+	return uuo
+}
+
+// ClearRecentTags clears the value of the "recent_tags" field.
+func (uuo *UserUpdateOne) ClearRecentTags() *UserUpdateOne {
+	uuo.mutation.ClearRecentTags()
+	return uuo
+}
+
 // AddArtworkIDs adds the "artworks" edge to the Artwork entity by IDs.
 func (uuo *UserUpdateOne) AddArtworkIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.AddArtworkIDs(ids...)
@@ -942,21 +1072,6 @@ func (uuo *UserUpdateOne) AddLikedArtworks(a ...*Artwork) *UserUpdateOne {
 	return uuo.AddLikedArtworkIDs(ids...)
 }
 
-// AddFavoriteIDs adds the "favorites" edge to the Artwork entity by IDs.
-func (uuo *UserUpdateOne) AddFavoriteIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddFavoriteIDs(ids...)
-	return uuo
-}
-
-// AddFavorites adds the "favorites" edges to the Artwork entity.
-func (uuo *UserUpdateOne) AddFavorites(a ...*Artwork) *UserUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return uuo.AddFavoriteIDs(ids...)
-}
-
 // AddFollowerIDs adds the "followers" edge to the User entity by IDs.
 func (uuo *UserUpdateOne) AddFollowerIDs(ids ...int) *UserUpdateOne {
 	uuo.mutation.AddFollowerIDs(ids...)
@@ -985,6 +1100,36 @@ func (uuo *UserUpdateOne) AddFollowing(u ...*User) *UserUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return uuo.AddFollowingIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (uuo *UserUpdateOne) AddCommentIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddCommentIDs(ids...)
+	return uuo
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (uuo *UserUpdateOne) AddComments(c ...*Comment) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddCommentIDs(ids...)
+}
+
+// AddLikedCommentIDs adds the "liked_comments" edge to the Comment entity by IDs.
+func (uuo *UserUpdateOne) AddLikedCommentIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddLikedCommentIDs(ids...)
+	return uuo
+}
+
+// AddLikedComments adds the "liked_comments" edges to the Comment entity.
+func (uuo *UserUpdateOne) AddLikedComments(c ...*Comment) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.AddLikedCommentIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1034,27 +1179,6 @@ func (uuo *UserUpdateOne) RemoveLikedArtworks(a ...*Artwork) *UserUpdateOne {
 	return uuo.RemoveLikedArtworkIDs(ids...)
 }
 
-// ClearFavorites clears all "favorites" edges to the Artwork entity.
-func (uuo *UserUpdateOne) ClearFavorites() *UserUpdateOne {
-	uuo.mutation.ClearFavorites()
-	return uuo
-}
-
-// RemoveFavoriteIDs removes the "favorites" edge to Artwork entities by IDs.
-func (uuo *UserUpdateOne) RemoveFavoriteIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveFavoriteIDs(ids...)
-	return uuo
-}
-
-// RemoveFavorites removes "favorites" edges to Artwork entities.
-func (uuo *UserUpdateOne) RemoveFavorites(a ...*Artwork) *UserUpdateOne {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return uuo.RemoveFavoriteIDs(ids...)
-}
-
 // ClearFollowers clears all "followers" edges to the User entity.
 func (uuo *UserUpdateOne) ClearFollowers() *UserUpdateOne {
 	uuo.mutation.ClearFollowers()
@@ -1095,6 +1219,48 @@ func (uuo *UserUpdateOne) RemoveFollowing(u ...*User) *UserUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return uuo.RemoveFollowingIDs(ids...)
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (uuo *UserUpdateOne) ClearComments() *UserUpdateOne {
+	uuo.mutation.ClearComments()
+	return uuo
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (uuo *UserUpdateOne) RemoveCommentIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveCommentIDs(ids...)
+	return uuo
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (uuo *UserUpdateOne) RemoveComments(c ...*Comment) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveCommentIDs(ids...)
+}
+
+// ClearLikedComments clears all "liked_comments" edges to the Comment entity.
+func (uuo *UserUpdateOne) ClearLikedComments() *UserUpdateOne {
+	uuo.mutation.ClearLikedComments()
+	return uuo
+}
+
+// RemoveLikedCommentIDs removes the "liked_comments" edge to Comment entities by IDs.
+func (uuo *UserUpdateOne) RemoveLikedCommentIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveLikedCommentIDs(ids...)
+	return uuo
+}
+
+// RemoveLikedComments removes "liked_comments" edges to Comment entities.
+func (uuo *UserUpdateOne) RemoveLikedComments(c ...*Comment) *UserUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uuo.RemoveLikedCommentIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1240,6 +1406,17 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.IsLikesPublic(); ok {
 		_spec.SetField(user.FieldIsLikesPublic, field.TypeBool, value)
 	}
+	if value, ok := uuo.mutation.RecentTags(); ok {
+		_spec.SetField(user.FieldRecentTags, field.TypeJSON, value)
+	}
+	if value, ok := uuo.mutation.AppendedRecentTags(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldRecentTags, value)
+		})
+	}
+	if uuo.mutation.RecentTagsCleared() {
+		_spec.ClearField(user.FieldRecentTags, field.TypeJSON)
+	}
 	if uuo.mutation.ArtworksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1320,51 +1497,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Inverse: false,
 			Table:   user.LikedArtworksTable,
 			Columns: user.LikedArtworksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uuo.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FavoritesTable,
-			Columns: user.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.RemovedFavoritesIDs(); len(nodes) > 0 && !uuo.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FavoritesTable,
-			Columns: user.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.FavoritesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FavoritesTable,
-			Columns: user.FavoritesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
@@ -1458,6 +1590,96 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !uuo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.LikedCommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.LikedCommentsTable,
+			Columns: user.LikedCommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedLikedCommentsIDs(); len(nodes) > 0 && !uuo.mutation.LikedCommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.LikedCommentsTable,
+			Columns: user.LikedCommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.LikedCommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.LikedCommentsTable,
+			Columns: user.LikedCommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

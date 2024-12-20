@@ -625,6 +625,16 @@ func IsLikesPublicNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldIsLikesPublic, v))
 }
 
+// RecentTagsIsNil applies the IsNil predicate on the "recent_tags" field.
+func RecentTagsIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldRecentTags))
+}
+
+// RecentTagsNotNil applies the NotNil predicate on the "recent_tags" field.
+func RecentTagsNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldRecentTags))
+}
+
 // HasArtworks applies the HasEdge predicate on the "artworks" edge.
 func HasArtworks() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -671,29 +681,6 @@ func HasLikedArtworksWith(preds ...predicate.Artwork) predicate.User {
 	})
 }
 
-// HasFavorites applies the HasEdge predicate on the "favorites" edge.
-func HasFavorites() predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, FavoritesTable, FavoritesPrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasFavoritesWith applies the HasEdge predicate on the "favorites" edge with a given conditions (other predicates).
-func HasFavoritesWith(preds ...predicate.Artwork) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		step := newFavoritesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasFollowers applies the HasEdge predicate on the "followers" edge.
 func HasFollowers() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -732,6 +719,52 @@ func HasFollowing() predicate.User {
 func HasFollowingWith(preds ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := newFollowingStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasComments applies the HasEdge predicate on the "comments" edge.
+func HasComments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CommentsTable, CommentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCommentsWith applies the HasEdge predicate on the "comments" edge with a given conditions (other predicates).
+func HasCommentsWith(preds ...predicate.Comment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCommentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLikedComments applies the HasEdge predicate on the "liked_comments" edge.
+func HasLikedComments() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, LikedCommentsTable, LikedCommentsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLikedCommentsWith applies the HasEdge predicate on the "liked_comments" edge with a given conditions (other predicates).
+func HasLikedCommentsWith(preds ...predicate.Comment) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newLikedCommentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

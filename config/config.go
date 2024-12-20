@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
@@ -32,6 +33,6 @@ type Config struct {
 func InitConfig() {
 	err := cleanenv.ReadConfig("config.yml", &C)
 	if err != nil {
-		panic(err)
+		log.Error(err)
 	}
 }

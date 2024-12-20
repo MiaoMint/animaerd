@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,12 @@ type MediaUpdate struct {
 // Where appends a list predicates to the MediaUpdate builder.
 func (mu *MediaUpdate) Where(ps ...predicate.Media) *MediaUpdate {
 	mu.mutation.Where(ps...)
+	return mu
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (mu *MediaUpdate) SetUpdateTime(t time.Time) *MediaUpdate {
+	mu.mutation.SetUpdateTime(t)
 	return mu
 }
 
@@ -190,6 +197,7 @@ func (mu *MediaUpdate) RemoveArtworks(a ...*Artwork) *MediaUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mu *MediaUpdate) Save(ctx context.Context) (int, error) {
+	mu.defaults()
 	return withHooks(ctx, mu.sqlSave, mu.mutation, mu.hooks)
 }
 
@@ -215,6 +223,14 @@ func (mu *MediaUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (mu *MediaUpdate) defaults() {
+	if _, ok := mu.mutation.UpdateTime(); !ok {
+		v := media.UpdateDefaultUpdateTime()
+		mu.mutation.SetUpdateTime(v)
+	}
+}
+
 func (mu *MediaUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(media.Table, media.Columns, sqlgraph.NewFieldSpec(media.FieldID, field.TypeInt))
 	if ps := mu.mutation.predicates; len(ps) > 0 {
@@ -223,6 +239,9 @@ func (mu *MediaUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := mu.mutation.UpdateTime(); ok {
+		_spec.SetField(media.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := mu.mutation.URL(); ok {
 		_spec.SetField(media.FieldURL, field.TypeString, value)
@@ -317,6 +336,12 @@ type MediaUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *MediaMutation
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (muo *MediaUpdateOne) SetUpdateTime(t time.Time) *MediaUpdateOne {
+	muo.mutation.SetUpdateTime(t)
+	return muo
 }
 
 // SetURL sets the "url" field.
@@ -494,6 +519,7 @@ func (muo *MediaUpdateOne) Select(field string, fields ...string) *MediaUpdateOn
 
 // Save executes the query and returns the updated Media entity.
 func (muo *MediaUpdateOne) Save(ctx context.Context) (*Media, error) {
+	muo.defaults()
 	return withHooks(ctx, muo.sqlSave, muo.mutation, muo.hooks)
 }
 
@@ -516,6 +542,14 @@ func (muo *MediaUpdateOne) Exec(ctx context.Context) error {
 func (muo *MediaUpdateOne) ExecX(ctx context.Context) {
 	if err := muo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (muo *MediaUpdateOne) defaults() {
+	if _, ok := muo.mutation.UpdateTime(); !ok {
+		v := media.UpdateDefaultUpdateTime()
+		muo.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -544,6 +578,9 @@ func (muo *MediaUpdateOne) sqlSave(ctx context.Context) (_node *Media, err error
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := muo.mutation.UpdateTime(); ok {
+		_spec.SetField(media.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := muo.mutation.URL(); ok {
 		_spec.SetField(media.FieldURL, field.TypeString, value)

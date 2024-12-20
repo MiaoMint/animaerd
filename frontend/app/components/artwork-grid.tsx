@@ -10,12 +10,14 @@ import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
+import ArtworkGridTile from "./artwork-grid-tile";
 
 interface ArtworkGridProps {
   username?: string;
+  isLiked?: boolean;
 }
 
-export function ArtworkGrid({ username }: ArtworkGridProps) {
+export function ArtworkGrid({ username, isLiked }: ArtworkGridProps) {
   const [artworks, setArtworks] = useState<ArtworkResponse[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -29,13 +31,19 @@ export function ArtworkGrid({ username }: ArtworkGridProps) {
     if (inView) {
       fetchArtworks();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView]);
 
   const fetchArtworks = async () => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const response = await artworkApi.getArtworks(page, 20, username);
+      const response = await artworkApi.getArtworks({
+        page,
+        pageSize: 20,
+        username,
+        isLiked,
+      });
       if (response.data === null) {
         setHasMore(false);
         return;
@@ -63,7 +71,7 @@ export function ArtworkGrid({ username }: ArtworkGridProps) {
         autoResize={true}
       >
         {artworks.map((artwork, index) => (
-          <Item key={artwork.id} artwork={artwork} index={index} />
+          <ArtworkGridTile key={artwork.id} artwork={artwork} index={index} />
         ))}
       </MasonryInfiniteGrid>
 
@@ -80,34 +88,5 @@ export function ArtworkGrid({ username }: ArtworkGridProps) {
         )}
       </div>
     </div>
-  );
-}
-
-function Item({ artwork, index }: { artwork: ArtworkResponse; index: number }) {
-  const router = useRouter();
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 2xl:w-1/6 p-2 relative group cursor-pointer"
-      onClick={() => router.push(`/artwork/${artwork.id}`)}
-    >
-      <Image
-        className="w-full min-h-[200px] max-h-[600px] object-cover rounded-lg"
-        src={artwork.url}
-        alt={artwork.title}
-        loading="lazy"
-        width={600}
-        height={400}
-        quality={70}
-      />
-
-      <div className="absolute inset-2 rounded-lg bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity p-2">
-        <Button size={"icon"}>
-          <Download className="w-4 h-4" />
-        </Button>
-      </div>
-    </motion.div>
   );
 }

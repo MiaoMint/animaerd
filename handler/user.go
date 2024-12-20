@@ -84,8 +84,8 @@ func UpdateUser(c *fiber.Ctx) error {
 		SetNillableUsername(req.Username).
 		SetNillableDisplayName(req.DisplayName).
 		SetNillableBio(req.Bio).
-		SetNillableIsFavoritesPublic(&req.IsFavoritesPublic).
-		SetNillableIsLikesPublic(&req.IsLikesPublic).
+		SetNillableIsFavoritesPublic(req.IsFavoritesPublic).
+		SetNillableIsLikesPublic(req.IsLikesPublic).
 		Save(c.Context())
 	if err != nil {
 		return err

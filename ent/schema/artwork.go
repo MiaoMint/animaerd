@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"entgo.io/ent/schema/mixin"
+	"github.com/MiaoMint/animaerd/ent/schema/schematype"
 )
 
 // Artwork holds the schema definition for the Artwork entity.
@@ -25,6 +26,7 @@ func (Artwork) Fields() []ent.Field {
 func (Artwork) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.Time{},
+		schematype.SoftDeleteMixin{},
 	}
 }
 
@@ -35,13 +37,17 @@ func (Artwork) Edges() []ent.Edge {
 			Ref("artworks"),
 		edge.From("owner", User.Type).
 			Ref("artworks").
+			Required().
 			Unique(),
 		edge.From("likes", User.Type).
 			Ref("liked_artworks"),
-		edge.From("favorites", User.Type).
-			Ref("favorites"),
 		edge.From("media", Media.Type).
 			Ref("artworks").
+			Required().
+			Unique(),
+		edge.To("comments", Comment.Type),
+		edge.From("comment_generate", Comment.Type).
+			Ref("generated_artwork").
 			Unique(),
 	}
 }

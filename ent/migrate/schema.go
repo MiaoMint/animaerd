@@ -13,11 +13,13 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "title", Type: field.TypeString, Nullable: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "is_ai", Type: field.TypeBool, Default: false},
-		{Name: "media_artworks", Type: field.TypeInt, Nullable: true},
-		{Name: "user_artworks", Type: field.TypeInt, Nullable: true},
+		{Name: "comment_generated_artwork", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "media_artworks", Type: field.TypeInt},
+		{Name: "user_artworks", Type: field.TypeInt},
 	}
 	// ArtworksTable holds the schema information for the "artworks" table.
 	ArtworksTable = &schema.Table{
@@ -26,28 +28,34 @@ var (
 		PrimaryKey: []*schema.Column{ArtworksColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "artworks_media_artworks",
-				Columns:    []*schema.Column{ArtworksColumns[6]},
-				RefColumns: []*schema.Column{MediaColumns[0]},
+				Symbol:     "artworks_comments_generated_artwork",
+				Columns:    []*schema.Column{ArtworksColumns[7]},
+				RefColumns: []*schema.Column{CommentsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
+				Symbol:     "artworks_media_artworks",
+				Columns:    []*schema.Column{ArtworksColumns[8]},
+				RefColumns: []*schema.Column{MediaColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "artworks_users_artworks",
-				Columns:    []*schema.Column{ArtworksColumns[7]},
+				Columns:    []*schema.Column{ArtworksColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.NoAction,
 			},
 		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "artwork_title",
 				Unique:  false,
-				Columns: []*schema.Column{ArtworksColumns[3]},
+				Columns: []*schema.Column{ArtworksColumns[4]},
 			},
 			{
 				Name:    "artwork_description",
 				Unique:  false,
-				Columns: []*schema.Column{ArtworksColumns[4]},
+				Columns: []*schema.Column{ArtworksColumns[5]},
 			},
 		},
 	}
@@ -66,9 +74,49 @@ var (
 		Columns:    ComfyUINodesColumns,
 		PrimaryKey: []*schema.Column{ComfyUINodesColumns[0]},
 	}
+	// CommentsColumns holds the columns for the "comments" table.
+	CommentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "depth", Type: field.TypeInt, Default: 0},
+		{Name: "comment_children", Type: field.TypeInt, Nullable: true},
+		{Name: "user_comments", Type: field.TypeInt},
+	}
+	// CommentsTable holds the schema information for the "comments" table.
+	CommentsTable = &schema.Table{
+		Name:       "comments",
+		Columns:    CommentsColumns,
+		PrimaryKey: []*schema.Column{CommentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "comments_comments_children",
+				Columns:    []*schema.Column{CommentsColumns[6]},
+				RefColumns: []*schema.Column{CommentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "comments_users_comments",
+				Columns:    []*schema.Column{CommentsColumns[7]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "comment_depth_comment_children",
+				Unique:  false,
+				Columns: []*schema.Column{CommentsColumns[5], CommentsColumns[6]},
+			},
+		},
+	}
 	// MediaColumns holds the columns for the "media" table.
 	MediaColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "url", Type: field.TypeString},
 		{Name: "key", Type: field.TypeString},
 		{Name: "size", Type: field.TypeInt},
@@ -86,18 +134,20 @@ var (
 			{
 				Name:    "media_hash",
 				Unique:  true,
-				Columns: []*schema.Column{MediaColumns[7]},
+				Columns: []*schema.Column{MediaColumns[9]},
 			},
 			{
 				Name:    "media_key",
 				Unique:  true,
-				Columns: []*schema.Column{MediaColumns[2]},
+				Columns: []*schema.Column{MediaColumns[4]},
 			},
 		},
 	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"user", "ai"}},
 	}
@@ -110,7 +160,7 @@ var (
 			{
 				Name:    "tag_name_type",
 				Unique:  true,
-				Columns: []*schema.Column{TagsColumns[1], TagsColumns[2]},
+				Columns: []*schema.Column{TagsColumns[3], TagsColumns[4]},
 			},
 		},
 	}
@@ -129,6 +179,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "banned"}, Default: "active"},
 		{Name: "is_favorites_public", Type: field.TypeBool, Default: true},
 		{Name: "is_likes_public", Type: field.TypeBool, Default: true},
+		{Name: "recent_tags", Type: field.TypeJSON, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -153,6 +204,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"image_to_image", "text_to_image", "comment_to_image"}},
 		{Name: "json", Type: field.TypeString},
@@ -163,6 +215,56 @@ var (
 		Name:       "workflows",
 		Columns:    WorkflowsColumns,
 		PrimaryKey: []*schema.Column{WorkflowsColumns[0]},
+	}
+	// ArtworkCommentsColumns holds the columns for the "artwork_comments" table.
+	ArtworkCommentsColumns = []*schema.Column{
+		{Name: "artwork_id", Type: field.TypeInt},
+		{Name: "comment_id", Type: field.TypeInt},
+	}
+	// ArtworkCommentsTable holds the schema information for the "artwork_comments" table.
+	ArtworkCommentsTable = &schema.Table{
+		Name:       "artwork_comments",
+		Columns:    ArtworkCommentsColumns,
+		PrimaryKey: []*schema.Column{ArtworkCommentsColumns[0], ArtworkCommentsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "artwork_comments_artwork_id",
+				Columns:    []*schema.Column{ArtworkCommentsColumns[0]},
+				RefColumns: []*schema.Column{ArtworksColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "artwork_comments_comment_id",
+				Columns:    []*schema.Column{ArtworkCommentsColumns[1]},
+				RefColumns: []*schema.Column{CommentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// CommentLikesColumns holds the columns for the "comment_likes" table.
+	CommentLikesColumns = []*schema.Column{
+		{Name: "comment_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// CommentLikesTable holds the schema information for the "comment_likes" table.
+	CommentLikesTable = &schema.Table{
+		Name:       "comment_likes",
+		Columns:    CommentLikesColumns,
+		PrimaryKey: []*schema.Column{CommentLikesColumns[0], CommentLikesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "comment_likes_comment_id",
+				Columns:    []*schema.Column{CommentLikesColumns[0]},
+				RefColumns: []*schema.Column{CommentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "comment_likes_user_id",
+				Columns:    []*schema.Column{CommentLikesColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// TagArtworksColumns holds the columns for the "tag_artworks" table.
 	TagArtworksColumns = []*schema.Column{
@@ -214,31 +316,6 @@ var (
 			},
 		},
 	}
-	// UserFavoritesColumns holds the columns for the "user_favorites" table.
-	UserFavoritesColumns = []*schema.Column{
-		{Name: "user_id", Type: field.TypeInt},
-		{Name: "artwork_id", Type: field.TypeInt},
-	}
-	// UserFavoritesTable holds the schema information for the "user_favorites" table.
-	UserFavoritesTable = &schema.Table{
-		Name:       "user_favorites",
-		Columns:    UserFavoritesColumns,
-		PrimaryKey: []*schema.Column{UserFavoritesColumns[0], UserFavoritesColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_favorites_user_id",
-				Columns:    []*schema.Column{UserFavoritesColumns[0]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "user_favorites_artwork_id",
-				Columns:    []*schema.Column{UserFavoritesColumns[1]},
-				RefColumns: []*schema.Column{ArtworksColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// UserFollowingColumns holds the columns for the "user_following" table.
 	UserFollowingColumns = []*schema.Column{
 		{Name: "user_id", Type: field.TypeInt},
@@ -268,26 +345,33 @@ var (
 	Tables = []*schema.Table{
 		ArtworksTable,
 		ComfyUINodesTable,
+		CommentsTable,
 		MediaTable,
 		TagsTable,
 		UsersTable,
 		WorkflowsTable,
+		ArtworkCommentsTable,
+		CommentLikesTable,
 		TagArtworksTable,
 		UserLikedArtworksTable,
-		UserFavoritesTable,
 		UserFollowingTable,
 	}
 )
 
 func init() {
-	ArtworksTable.ForeignKeys[0].RefTable = MediaTable
-	ArtworksTable.ForeignKeys[1].RefTable = UsersTable
+	ArtworksTable.ForeignKeys[0].RefTable = CommentsTable
+	ArtworksTable.ForeignKeys[1].RefTable = MediaTable
+	ArtworksTable.ForeignKeys[2].RefTable = UsersTable
+	CommentsTable.ForeignKeys[0].RefTable = CommentsTable
+	CommentsTable.ForeignKeys[1].RefTable = UsersTable
+	ArtworkCommentsTable.ForeignKeys[0].RefTable = ArtworksTable
+	ArtworkCommentsTable.ForeignKeys[1].RefTable = CommentsTable
+	CommentLikesTable.ForeignKeys[0].RefTable = CommentsTable
+	CommentLikesTable.ForeignKeys[1].RefTable = UsersTable
 	TagArtworksTable.ForeignKeys[0].RefTable = TagsTable
 	TagArtworksTable.ForeignKeys[1].RefTable = ArtworksTable
 	UserLikedArtworksTable.ForeignKeys[0].RefTable = UsersTable
 	UserLikedArtworksTable.ForeignKeys[1].RefTable = ArtworksTable
-	UserFavoritesTable.ForeignKeys[0].RefTable = UsersTable
-	UserFavoritesTable.ForeignKeys[1].RefTable = ArtworksTable
 	UserFollowingTable.ForeignKeys[0].RefTable = UsersTable
 	UserFollowingTable.ForeignKeys[1].RefTable = UsersTable
 }

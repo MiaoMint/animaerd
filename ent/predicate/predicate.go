@@ -12,6 +12,9 @@ type Artwork func(*sql.Selector)
 // ComfyUINode is the predicate function for comfyuinode builders.
 type ComfyUINode func(*sql.Selector)
 
+// Comment is the predicate function for comment builders.
+type Comment func(*sql.Selector)
+
 // Media is the predicate function for media builders.
 type Media func(*sql.Selector)
 

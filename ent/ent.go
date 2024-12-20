@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/MiaoMint/animaerd/ent/artwork"
 	"github.com/MiaoMint/animaerd/ent/comfyuinode"
+	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
@@ -80,6 +81,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			artwork.Table:     artwork.ValidColumn,
 			comfyuinode.Table: comfyuinode.ValidColumn,
+			comment.Table:     comment.ValidColumn,
 			media.Table:       media.ValidColumn,
 			tag.Table:         tag.ValidColumn,
 			user.Table:        user.ValidColumn,

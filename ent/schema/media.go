@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"entgo.io/ent/schema/mixin"
 )
 
 // Media holds the schema definition for the Media entity.
@@ -36,5 +37,11 @@ func (Media) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("hash").Unique(),
 		index.Fields("key").Unique(),
+	}
+}
+
+func (Media) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.Time{},
 	}
 }

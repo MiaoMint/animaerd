@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
+	"github.com/MiaoMint/animaerd/ent/schema/schematype"
 )
 
 // Workflow holds the schema definition for the Workflow entity.
@@ -23,13 +24,14 @@ func (Workflow) Fields() []ent.Field {
 	}
 }
 
-func (Workflow) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		mixin.Time{},
-	}
-}
-
 // Edges of the Workflow.
 func (Workflow) Edges() []ent.Edge {
 	return nil
+}
+
+func (Workflow) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		mixin.Time{},
+		schematype.SoftDeleteMixin{},
+	}
 }

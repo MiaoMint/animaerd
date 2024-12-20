@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ent/predicate"
 	"github.com/MiaoMint/animaerd/ent/tag"
@@ -22,16 +23,17 @@ import (
 // ArtworkQuery is the builder for querying Artwork entities.
 type ArtworkQuery struct {
 	config
-	ctx           *QueryContext
-	order         []artwork.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Artwork
-	withTags      *TagQuery
-	withOwner     *UserQuery
-	withLikes     *UserQuery
-	withFavorites *UserQuery
-	withMedia     *MediaQuery
-	withFKs       bool
+	ctx                 *QueryContext
+	order               []artwork.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.Artwork
+	withTags            *TagQuery
+	withOwner           *UserQuery
+	withLikes           *UserQuery
+	withMedia           *MediaQuery
+	withComments        *CommentQuery
+	withCommentGenerate *CommentQuery
+	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -134,28 +136,6 @@ func (aq *ArtworkQuery) QueryLikes() *UserQuery {
 	return query
 }
 
-// QueryFavorites chains the current query on the "favorites" edge.
-func (aq *ArtworkQuery) QueryFavorites() *UserQuery {
-	query := (&UserClient{config: aq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := aq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := aq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(artwork.Table, artwork.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, artwork.FavoritesTable, artwork.FavoritesPrimaryKey...),
-		)
-		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryMedia chains the current query on the "media" edge.
 func (aq *ArtworkQuery) QueryMedia() *MediaQuery {
 	query := (&MediaClient{config: aq.config}).Query()
@@ -171,6 +151,50 @@ func (aq *ArtworkQuery) QueryMedia() *MediaQuery {
 			sqlgraph.From(artwork.Table, artwork.FieldID, selector),
 			sqlgraph.To(media.Table, media.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, artwork.MediaTable, artwork.MediaColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryComments chains the current query on the "comments" edge.
+func (aq *ArtworkQuery) QueryComments() *CommentQuery {
+	query := (&CommentClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(artwork.Table, artwork.FieldID, selector),
+			sqlgraph.To(comment.Table, comment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, artwork.CommentsTable, artwork.CommentsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCommentGenerate chains the current query on the "comment_generate" edge.
+func (aq *ArtworkQuery) QueryCommentGenerate() *CommentQuery {
+	query := (&CommentClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(artwork.Table, artwork.FieldID, selector),
+			sqlgraph.To(comment.Table, comment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, artwork.CommentGenerateTable, artwork.CommentGenerateColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -365,16 +389,17 @@ func (aq *ArtworkQuery) Clone() *ArtworkQuery {
 		return nil
 	}
 	return &ArtworkQuery{
-		config:        aq.config,
-		ctx:           aq.ctx.Clone(),
-		order:         append([]artwork.OrderOption{}, aq.order...),
-		inters:        append([]Interceptor{}, aq.inters...),
-		predicates:    append([]predicate.Artwork{}, aq.predicates...),
-		withTags:      aq.withTags.Clone(),
-		withOwner:     aq.withOwner.Clone(),
-		withLikes:     aq.withLikes.Clone(),
-		withFavorites: aq.withFavorites.Clone(),
-		withMedia:     aq.withMedia.Clone(),
+		config:              aq.config,
+		ctx:                 aq.ctx.Clone(),
+		order:               append([]artwork.OrderOption{}, aq.order...),
+		inters:              append([]Interceptor{}, aq.inters...),
+		predicates:          append([]predicate.Artwork{}, aq.predicates...),
+		withTags:            aq.withTags.Clone(),
+		withOwner:           aq.withOwner.Clone(),
+		withLikes:           aq.withLikes.Clone(),
+		withMedia:           aq.withMedia.Clone(),
+		withComments:        aq.withComments.Clone(),
+		withCommentGenerate: aq.withCommentGenerate.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
@@ -414,17 +439,6 @@ func (aq *ArtworkQuery) WithLikes(opts ...func(*UserQuery)) *ArtworkQuery {
 	return aq
 }
 
-// WithFavorites tells the query-builder to eager-load the nodes that are connected to
-// the "favorites" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *ArtworkQuery) WithFavorites(opts ...func(*UserQuery)) *ArtworkQuery {
-	query := (&UserClient{config: aq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	aq.withFavorites = query
-	return aq
-}
-
 // WithMedia tells the query-builder to eager-load the nodes that are connected to
 // the "media" edge. The optional arguments are used to configure the query builder of the edge.
 func (aq *ArtworkQuery) WithMedia(opts ...func(*MediaQuery)) *ArtworkQuery {
@@ -433,6 +447,28 @@ func (aq *ArtworkQuery) WithMedia(opts ...func(*MediaQuery)) *ArtworkQuery {
 		opt(query)
 	}
 	aq.withMedia = query
+	return aq
+}
+
+// WithComments tells the query-builder to eager-load the nodes that are connected to
+// the "comments" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *ArtworkQuery) WithComments(opts ...func(*CommentQuery)) *ArtworkQuery {
+	query := (&CommentClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withComments = query
+	return aq
+}
+
+// WithCommentGenerate tells the query-builder to eager-load the nodes that are connected to
+// the "comment_generate" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *ArtworkQuery) WithCommentGenerate(opts ...func(*CommentQuery)) *ArtworkQuery {
+	query := (&CommentClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCommentGenerate = query
 	return aq
 }
 
@@ -515,15 +551,16 @@ func (aq *ArtworkQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Artw
 		nodes       = []*Artwork{}
 		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			aq.withTags != nil,
 			aq.withOwner != nil,
 			aq.withLikes != nil,
-			aq.withFavorites != nil,
 			aq.withMedia != nil,
+			aq.withComments != nil,
+			aq.withCommentGenerate != nil,
 		}
 	)
-	if aq.withOwner != nil || aq.withMedia != nil {
+	if aq.withOwner != nil || aq.withMedia != nil || aq.withCommentGenerate != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -567,16 +604,22 @@ func (aq *ArtworkQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Artw
 			return nil, err
 		}
 	}
-	if query := aq.withFavorites; query != nil {
-		if err := aq.loadFavorites(ctx, query, nodes,
-			func(n *Artwork) { n.Edges.Favorites = []*User{} },
-			func(n *Artwork, e *User) { n.Edges.Favorites = append(n.Edges.Favorites, e) }); err != nil {
-			return nil, err
-		}
-	}
 	if query := aq.withMedia; query != nil {
 		if err := aq.loadMedia(ctx, query, nodes, nil,
 			func(n *Artwork, e *Media) { n.Edges.Media = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withComments; query != nil {
+		if err := aq.loadComments(ctx, query, nodes,
+			func(n *Artwork) { n.Edges.Comments = []*Comment{} },
+			func(n *Artwork, e *Comment) { n.Edges.Comments = append(n.Edges.Comments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withCommentGenerate; query != nil {
+		if err := aq.loadCommentGenerate(ctx, query, nodes, nil,
+			func(n *Artwork, e *Comment) { n.Edges.CommentGenerate = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -737,7 +780,39 @@ func (aq *ArtworkQuery) loadLikes(ctx context.Context, query *UserQuery, nodes [
 	}
 	return nil
 }
-func (aq *ArtworkQuery) loadFavorites(ctx context.Context, query *UserQuery, nodes []*Artwork, init func(*Artwork), assign func(*Artwork, *User)) error {
+func (aq *ArtworkQuery) loadMedia(ctx context.Context, query *MediaQuery, nodes []*Artwork, init func(*Artwork), assign func(*Artwork, *Media)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Artwork)
+	for i := range nodes {
+		if nodes[i].media_artworks == nil {
+			continue
+		}
+		fk := *nodes[i].media_artworks
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(media.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "media_artworks" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (aq *ArtworkQuery) loadComments(ctx context.Context, query *CommentQuery, nodes []*Artwork, init func(*Artwork), assign func(*Artwork, *Comment)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*Artwork)
 	nids := make(map[int]map[*Artwork]struct{})
@@ -749,11 +824,11 @@ func (aq *ArtworkQuery) loadFavorites(ctx context.Context, query *UserQuery, nod
 		}
 	}
 	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(artwork.FavoritesTable)
-		s.Join(joinT).On(s.C(user.FieldID), joinT.C(artwork.FavoritesPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(artwork.FavoritesPrimaryKey[1]), edgeIDs...))
+		joinT := sql.Table(artwork.CommentsTable)
+		s.Join(joinT).On(s.C(comment.FieldID), joinT.C(artwork.CommentsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(artwork.CommentsPrimaryKey[0]), edgeIDs...))
 		columns := s.SelectedColumns()
-		s.Select(joinT.C(artwork.FavoritesPrimaryKey[1]))
+		s.Select(joinT.C(artwork.CommentsPrimaryKey[0]))
 		s.AppendSelect(columns...)
 		s.SetDistinct(false)
 	})
@@ -783,14 +858,14 @@ func (aq *ArtworkQuery) loadFavorites(ctx context.Context, query *UserQuery, nod
 			}
 		})
 	})
-	neighbors, err := withInterceptors[[]*User](ctx, query, qr, query.inters)
+	neighbors, err := withInterceptors[[]*Comment](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
 		nodes, ok := nids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "favorites" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected "comments" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)
@@ -798,14 +873,14 @@ func (aq *ArtworkQuery) loadFavorites(ctx context.Context, query *UserQuery, nod
 	}
 	return nil
 }
-func (aq *ArtworkQuery) loadMedia(ctx context.Context, query *MediaQuery, nodes []*Artwork, init func(*Artwork), assign func(*Artwork, *Media)) error {
+func (aq *ArtworkQuery) loadCommentGenerate(ctx context.Context, query *CommentQuery, nodes []*Artwork, init func(*Artwork), assign func(*Artwork, *Comment)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Artwork)
 	for i := range nodes {
-		if nodes[i].media_artworks == nil {
+		if nodes[i].comment_generated_artwork == nil {
 			continue
 		}
-		fk := *nodes[i].media_artworks
+		fk := *nodes[i].comment_generated_artwork
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -814,7 +889,7 @@ func (aq *ArtworkQuery) loadMedia(ctx context.Context, query *MediaQuery, nodes 
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(media.IDIn(ids...))
+	query.Where(comment.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
@@ -822,7 +897,7 @@ func (aq *ArtworkQuery) loadMedia(ctx context.Context, query *MediaQuery, nodes 
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "media_artworks" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "comment_generated_artwork" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

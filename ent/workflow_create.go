@@ -48,6 +48,20 @@ func (wc *WorkflowCreate) SetNillableUpdateTime(t *time.Time) *WorkflowCreate {
 	return wc
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (wc *WorkflowCreate) SetDeletedAt(t time.Time) *WorkflowCreate {
+	wc.mutation.SetDeletedAt(t)
+	return wc
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (wc *WorkflowCreate) SetNillableDeletedAt(t *time.Time) *WorkflowCreate {
+	if t != nil {
+		wc.SetDeletedAt(*t)
+	}
+	return wc
+}
+
 // SetName sets the "name" field.
 func (wc *WorkflowCreate) SetName(s string) *WorkflowCreate {
 	wc.mutation.SetName(s)
@@ -87,7 +101,9 @@ func (wc *WorkflowCreate) Mutation() *WorkflowMutation {
 
 // Save creates the Workflow in the database.
 func (wc *WorkflowCreate) Save(ctx context.Context) (*Workflow, error) {
-	wc.defaults()
+	if err := wc.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, wc.sqlSave, wc.mutation, wc.hooks)
 }
 
@@ -114,12 +130,18 @@ func (wc *WorkflowCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (wc *WorkflowCreate) defaults() {
+func (wc *WorkflowCreate) defaults() error {
 	if _, ok := wc.mutation.CreateTime(); !ok {
+		if workflow.DefaultCreateTime == nil {
+			return fmt.Errorf("ent: uninitialized workflow.DefaultCreateTime (forgotten import ent/runtime?)")
+		}
 		v := workflow.DefaultCreateTime()
 		wc.mutation.SetCreateTime(v)
 	}
 	if _, ok := wc.mutation.UpdateTime(); !ok {
+		if workflow.DefaultUpdateTime == nil {
+			return fmt.Errorf("ent: uninitialized workflow.DefaultUpdateTime (forgotten import ent/runtime?)")
+		}
 		v := workflow.DefaultUpdateTime()
 		wc.mutation.SetUpdateTime(v)
 	}
@@ -127,6 +149,7 @@ func (wc *WorkflowCreate) defaults() {
 		v := workflow.DefaultEnabled
 		wc.mutation.SetEnabled(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -187,6 +210,10 @@ func (wc *WorkflowCreate) createSpec() (*Workflow, *sqlgraph.CreateSpec) {
 	if value, ok := wc.mutation.UpdateTime(); ok {
 		_spec.SetField(workflow.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := wc.mutation.DeletedAt(); ok {
+		_spec.SetField(workflow.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = value
 	}
 	if value, ok := wc.mutation.Name(); ok {
 		_spec.SetField(workflow.FieldName, field.TypeString, value)

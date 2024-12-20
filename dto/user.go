@@ -15,8 +15,8 @@ type UpdateUserRequest struct {
 	Username          *string `json:"username,omitempty"`
 	DisplayName       *string `json:"display_name,omitempty"`
 	Bio               *string `json:"bio,omitempty"`
-	IsFavoritesPublic bool    `json:"is_favorites_public,omitempty"`
-	IsLikesPublic     bool    `json:"is_likes_public,omitempty"`
+	IsFavoritesPublic *bool   `json:"is_favorites_public,omitempty"`
+	IsLikesPublic     *bool   `json:"is_likes_public,omitempty"`
 }
 
 // UserListResponse 用户列表响应

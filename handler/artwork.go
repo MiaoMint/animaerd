@@ -18,6 +18,7 @@ func GetArtworkList(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)
 	pageSize := c.QueryInt("pageSize", 20)
 	username := c.Query("username")
+	isLiked := c.Query("isLiked")
 
 	// Calculate offset
 	offset := (page - 1) * pageSize
@@ -34,6 +35,11 @@ func GetArtworkList(c *fiber.Ctx) error {
 		query = query.Where(artwork.HasOwnerWith(
 			user.UsernameEQ(username),
 		))
+		if isLiked == "true" {
+			query = query.Where(artwork.HasLikesWith(
+				user.UsernameEQ(username),
+			))
+		}
 	}
 
 	artworks, err := query.All(c.Context())
@@ -68,7 +74,9 @@ func GetArtworkList(c *fiber.Ctx) error {
 }
 
 func GetArtwork(c *fiber.Ctx) error {
-	imageId, err := c.ParamsInt("id")
+	artworkId, err := c.ParamsInt("id")
+	userId := c.Locals("userId")
+
 	if err != nil {
 		return c.JSON(result.NewErrorResult("Invalid artwork id", 400))
 	}
@@ -77,7 +85,7 @@ func GetArtwork(c *fiber.Ctx) error {
 
 	// Get artwork by ID
 	artwork, err := entClient.Artwork.Query().
-		Where(artwork.IDEQ(imageId)).
+		Where(artwork.IDEQ(artworkId)).
 		WithMedia().
 		WithTags().
 		WithOwner().
@@ -85,6 +93,12 @@ func GetArtwork(c *fiber.Ctx) error {
 
 	if err != nil {
 		return c.JSON(result.NewErrorResult("Artwork not found", 404))
+	}
+
+	var tags = []string{}
+
+	for _, tag := range artwork.Edges.Tags {
+		tags = append(tags, tag.Name)
 	}
 
 	return c.JSON(result.NewSuccessResult(dto.ArtworkResponse{
@@ -96,7 +110,7 @@ func GetArtwork(c *fiber.Ctx) error {
 		Height:        artwork.Edges.Media.Height,
 		PrimaryCorlor: artwork.Edges.Media.PrimaryCorlor,
 		IsAI:          artwork.IsAi,
-		Tags:          []string{},
+		Tags:          tags,
 		User: dto.UserResponse{
 			ID:                artwork.Edges.Owner.ID,
 			Username:          artwork.Edges.Owner.Username,
@@ -106,8 +120,11 @@ func GetArtwork(c *fiber.Ctx) error {
 			IsFavoritesPublic: artwork.Edges.Owner.IsFavoritesPublic,
 			IsLikesPublic:     artwork.Edges.Owner.IsLikesPublic,
 		},
-		Likes:       0,
+		Likes:       artwork.QueryLikes().CountX(c.Context()),
 		CreatedTime: artwork.CreateTime.Format("2006-01-02 15:04:05"),
+		IsLiked: artwork.QueryLikes().
+			Where(user.IDEQ(int(userId.(float64)))).
+			ExistX(c.Context()),
 	}))
 }
 
@@ -142,4 +159,76 @@ func CreateArtwork(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(result.NewSuccessResult(artwork.ID))
+}
+
+func LikeArtwork(c *fiber.Ctx) error {
+	entClient := ext.EntClient()
+	userId := c.Locals("userId").(float64)
+	artworkId, err := c.ParamsInt("id")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid artwork id", 400))
+	}
+
+	artwork, err := entClient.Artwork.Query().
+		Where(artwork.IDEQ(artworkId)).
+		WithMedia().
+		WithTags().
+		WithOwner().
+		First(c.Context())
+
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Artwork not found", 404))
+	}
+
+	like, err := entClient.Artwork.UpdateOneID(artwork.ID).
+		AddLikeIDs(int(userId)).
+		Save(c.Context())
+
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result.NewSuccessResult(like.ID))
+}
+
+func UnlikeArtwork(c *fiber.Ctx) error {
+	entClient := ext.EntClient()
+	userId := c.Locals("userId").(float64)
+	artworkId, err := c.ParamsInt("id")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid artwork id", 400))
+	}
+
+	artwork, err := entClient.Artwork.UpdateOneID(artworkId).
+		RemoveLikeIDs(int(userId)).
+		Save(c.Context())
+
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Failed to unlike artwork", 500))
+	}
+
+	return c.JSON(result.NewSuccessResult(artwork.ID))
+}
+
+func GetArtworkLikeStatus(c *fiber.Ctx) error {
+	entClient := ext.EntClient()
+	userId := c.Locals("userId").(float64)
+	artworkId, err := c.ParamsInt("id")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid artwork id", 400))
+	}
+
+	like, err := entClient.Artwork.Query().
+		Where(
+			artwork.And(
+				artwork.IDEQ(artworkId),
+				artwork.HasLikesWith(user.IDEQ(int(userId))),
+			),
+		).Exist(c.Context())
+
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Failed to get artwork like status", 500))
+	}
+
+	return c.JSON(result.NewSuccessResult(like))
 }

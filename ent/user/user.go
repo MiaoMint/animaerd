@@ -39,16 +39,20 @@ const (
 	FieldIsFavoritesPublic = "is_favorites_public"
 	// FieldIsLikesPublic holds the string denoting the is_likes_public field in the database.
 	FieldIsLikesPublic = "is_likes_public"
+	// FieldRecentTags holds the string denoting the recent_tags field in the database.
+	FieldRecentTags = "recent_tags"
 	// EdgeArtworks holds the string denoting the artworks edge name in mutations.
 	EdgeArtworks = "artworks"
 	// EdgeLikedArtworks holds the string denoting the liked_artworks edge name in mutations.
 	EdgeLikedArtworks = "liked_artworks"
-	// EdgeFavorites holds the string denoting the favorites edge name in mutations.
-	EdgeFavorites = "favorites"
 	// EdgeFollowers holds the string denoting the followers edge name in mutations.
 	EdgeFollowers = "followers"
 	// EdgeFollowing holds the string denoting the following edge name in mutations.
 	EdgeFollowing = "following"
+	// EdgeComments holds the string denoting the comments edge name in mutations.
+	EdgeComments = "comments"
+	// EdgeLikedComments holds the string denoting the liked_comments edge name in mutations.
+	EdgeLikedComments = "liked_comments"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// ArtworksTable is the table that holds the artworks relation/edge.
@@ -63,15 +67,22 @@ const (
 	// LikedArtworksInverseTable is the table name for the Artwork entity.
 	// It exists in this package in order to avoid circular dependency with the "artwork" package.
 	LikedArtworksInverseTable = "artworks"
-	// FavoritesTable is the table that holds the favorites relation/edge. The primary key declared below.
-	FavoritesTable = "user_favorites"
-	// FavoritesInverseTable is the table name for the Artwork entity.
-	// It exists in this package in order to avoid circular dependency with the "artwork" package.
-	FavoritesInverseTable = "artworks"
 	// FollowersTable is the table that holds the followers relation/edge. The primary key declared below.
 	FollowersTable = "user_following"
 	// FollowingTable is the table that holds the following relation/edge. The primary key declared below.
 	FollowingTable = "user_following"
+	// CommentsTable is the table that holds the comments relation/edge.
+	CommentsTable = "comments"
+	// CommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentsInverseTable = "comments"
+	// CommentsColumn is the table column denoting the comments relation/edge.
+	CommentsColumn = "user_comments"
+	// LikedCommentsTable is the table that holds the liked_comments relation/edge. The primary key declared below.
+	LikedCommentsTable = "comment_likes"
+	// LikedCommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	LikedCommentsInverseTable = "comments"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -89,21 +100,22 @@ var Columns = []string{
 	FieldStatus,
 	FieldIsFavoritesPublic,
 	FieldIsLikesPublic,
+	FieldRecentTags,
 }
 
 var (
 	// LikedArtworksPrimaryKey and LikedArtworksColumn2 are the table columns denoting the
 	// primary key for the liked_artworks relation (M2M).
 	LikedArtworksPrimaryKey = []string{"user_id", "artwork_id"}
-	// FavoritesPrimaryKey and FavoritesColumn2 are the table columns denoting the
-	// primary key for the favorites relation (M2M).
-	FavoritesPrimaryKey = []string{"user_id", "artwork_id"}
 	// FollowersPrimaryKey and FollowersColumn2 are the table columns denoting the
 	// primary key for the followers relation (M2M).
 	FollowersPrimaryKey = []string{"user_id", "follower_id"}
 	// FollowingPrimaryKey and FollowingColumn2 are the table columns denoting the
 	// primary key for the following relation (M2M).
 	FollowingPrimaryKey = []string{"user_id", "follower_id"}
+	// LikedCommentsPrimaryKey and LikedCommentsColumn2 are the table columns denoting the
+	// primary key for the liked_comments relation (M2M).
+	LikedCommentsPrimaryKey = []string{"comment_id", "user_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -301,20 +313,6 @@ func ByLikedArtworks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByFavoritesCount orders the results by favorites count.
-func ByFavoritesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newFavoritesStep(), opts...)
-	}
-}
-
-// ByFavorites orders the results by favorites terms.
-func ByFavorites(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newFavoritesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByFollowersCount orders the results by followers count.
 func ByFollowersCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -342,6 +340,34 @@ func ByFollowing(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFollowingStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCommentsCount orders the results by comments count.
+func ByCommentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommentsStep(), opts...)
+	}
+}
+
+// ByComments orders the results by comments terms.
+func ByComments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLikedCommentsCount orders the results by liked_comments count.
+func ByLikedCommentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLikedCommentsStep(), opts...)
+	}
+}
+
+// ByLikedComments orders the results by liked_comments terms.
+func ByLikedComments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLikedCommentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newArtworksStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -356,13 +382,6 @@ func newLikedArtworksStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, LikedArtworksTable, LikedArtworksPrimaryKey...),
 	)
 }
-func newFavoritesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(FavoritesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, FavoritesTable, FavoritesPrimaryKey...),
-	)
-}
 func newFollowersStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -375,5 +394,19 @@ func newFollowingStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(Table, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, FollowingTable, FollowingPrimaryKey...),
+	)
+}
+func newCommentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CommentsTable, CommentsColumn),
+	)
+}
+func newLikedCommentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LikedCommentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, LikedCommentsTable, LikedCommentsPrimaryKey...),
 	)
 }

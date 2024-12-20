@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ent/user"
 )
@@ -23,6 +24,8 @@ type Artwork struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
@@ -31,10 +34,11 @@ type Artwork struct {
 	IsAi bool `json:"is_ai,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ArtworkQuery when eager-loading is set.
-	Edges          ArtworkEdges `json:"edges"`
-	media_artworks *int
-	user_artworks  *int
-	selectValues   sql.SelectValues
+	Edges                     ArtworkEdges `json:"edges"`
+	comment_generated_artwork *int
+	media_artworks            *int
+	user_artworks             *int
+	selectValues              sql.SelectValues
 }
 
 // ArtworkEdges holds the relations/edges for other nodes in the graph.
@@ -45,13 +49,15 @@ type ArtworkEdges struct {
 	Owner *User `json:"owner,omitempty"`
 	// Likes holds the value of the likes edge.
 	Likes []*User `json:"likes,omitempty"`
-	// Favorites holds the value of the favorites edge.
-	Favorites []*User `json:"favorites,omitempty"`
 	// Media holds the value of the media edge.
 	Media *Media `json:"media,omitempty"`
+	// Comments holds the value of the comments edge.
+	Comments []*Comment `json:"comments,omitempty"`
+	// CommentGenerate holds the value of the comment_generate edge.
+	CommentGenerate *Comment `json:"comment_generate,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // TagsOrErr returns the Tags value or an error if the edge
@@ -83,24 +89,35 @@ func (e ArtworkEdges) LikesOrErr() ([]*User, error) {
 	return nil, &NotLoadedError{edge: "likes"}
 }
 
-// FavoritesOrErr returns the Favorites value or an error if the edge
-// was not loaded in eager-loading.
-func (e ArtworkEdges) FavoritesOrErr() ([]*User, error) {
-	if e.loadedTypes[3] {
-		return e.Favorites, nil
-	}
-	return nil, &NotLoadedError{edge: "favorites"}
-}
-
 // MediaOrErr returns the Media value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ArtworkEdges) MediaOrErr() (*Media, error) {
 	if e.Media != nil {
 		return e.Media, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: media.Label}
 	}
 	return nil, &NotLoadedError{edge: "media"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e ArtworkEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[4] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// CommentGenerateOrErr returns the CommentGenerate value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ArtworkEdges) CommentGenerateOrErr() (*Comment, error) {
+	if e.CommentGenerate != nil {
+		return e.CommentGenerate, nil
+	} else if e.loadedTypes[5] {
+		return nil, &NotFoundError{label: comment.Label}
+	}
+	return nil, &NotLoadedError{edge: "comment_generate"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -114,11 +131,13 @@ func (*Artwork) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case artwork.FieldTitle, artwork.FieldDescription:
 			values[i] = new(sql.NullString)
-		case artwork.FieldCreateTime, artwork.FieldUpdateTime:
+		case artwork.FieldCreateTime, artwork.FieldUpdateTime, artwork.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case artwork.ForeignKeys[0]: // media_artworks
+		case artwork.ForeignKeys[0]: // comment_generated_artwork
 			values[i] = new(sql.NullInt64)
-		case artwork.ForeignKeys[1]: // user_artworks
+		case artwork.ForeignKeys[1]: // media_artworks
+			values[i] = new(sql.NullInt64)
+		case artwork.ForeignKeys[2]: // user_artworks
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -153,6 +172,12 @@ func (a *Artwork) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				a.UpdateTime = value.Time
 			}
+		case artwork.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				a.DeletedAt = value.Time
+			}
 		case artwork.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
@@ -173,12 +198,19 @@ func (a *Artwork) assignValues(columns []string, values []any) error {
 			}
 		case artwork.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field comment_generated_artwork", value)
+			} else if value.Valid {
+				a.comment_generated_artwork = new(int)
+				*a.comment_generated_artwork = int(value.Int64)
+			}
+		case artwork.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field media_artworks", value)
 			} else if value.Valid {
 				a.media_artworks = new(int)
 				*a.media_artworks = int(value.Int64)
 			}
-		case artwork.ForeignKeys[1]:
+		case artwork.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field user_artworks", value)
 			} else if value.Valid {
@@ -213,14 +245,19 @@ func (a *Artwork) QueryLikes() *UserQuery {
 	return NewArtworkClient(a.config).QueryLikes(a)
 }
 
-// QueryFavorites queries the "favorites" edge of the Artwork entity.
-func (a *Artwork) QueryFavorites() *UserQuery {
-	return NewArtworkClient(a.config).QueryFavorites(a)
-}
-
 // QueryMedia queries the "media" edge of the Artwork entity.
 func (a *Artwork) QueryMedia() *MediaQuery {
 	return NewArtworkClient(a.config).QueryMedia(a)
+}
+
+// QueryComments queries the "comments" edge of the Artwork entity.
+func (a *Artwork) QueryComments() *CommentQuery {
+	return NewArtworkClient(a.config).QueryComments(a)
+}
+
+// QueryCommentGenerate queries the "comment_generate" edge of the Artwork entity.
+func (a *Artwork) QueryCommentGenerate() *CommentQuery {
+	return NewArtworkClient(a.config).QueryCommentGenerate(a)
 }
 
 // Update returns a builder for updating this Artwork.
@@ -251,6 +288,9 @@ func (a *Artwork) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(a.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("deleted_at=")
+	builder.WriteString(a.DeletedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(a.Title)

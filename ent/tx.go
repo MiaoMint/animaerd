@@ -16,6 +16,8 @@ type Tx struct {
 	Artwork *ArtworkClient
 	// ComfyUINode is the client for interacting with the ComfyUINode builders.
 	ComfyUINode *ComfyUINodeClient
+	// Comment is the client for interacting with the Comment builders.
+	Comment *CommentClient
 	// Media is the client for interacting with the Media builders.
 	Media *MediaClient
 	// Tag is the client for interacting with the Tag builders.
@@ -157,6 +159,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Artwork = NewArtworkClient(tx.config)
 	tx.ComfyUINode = NewComfyUINodeClient(tx.config)
+	tx.Comment = NewCommentClient(tx.config)
 	tx.Media = NewMediaClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.User = NewUserClient(tx.config)

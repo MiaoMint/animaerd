@@ -76,7 +76,7 @@ export default function ProfilePage({
             {/* Add Comments content here */}
           </TabsContent>
           <TabsContent value="likes">
-            {/* Add Likes content here */}
+            <ArtworkGrid username={data?.username} isLiked={true} />
           </TabsContent>
         </Tabs>
       </div>

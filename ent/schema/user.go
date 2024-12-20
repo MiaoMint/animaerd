@@ -36,6 +36,9 @@ func (User) Fields() []ent.Field {
 		// 是否公开用户喜欢的作品显示
 		field.Bool("is_likes_public").
 			Default(true),
+		// 用户最近观看作品的特点tag, 用于推荐
+		field.Strings("recent_tags").
+			Optional(),
 	}
 }
 
@@ -50,9 +53,11 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("artworks", Artwork.Type),
 		edge.To("liked_artworks", Artwork.Type),
-		edge.To("favorites", Artwork.Type),
 		edge.To("following", User.Type).
 			From("followers"),
+		edge.To("comments", Comment.Type),
+		edge.From("liked_comments", Comment.Type).
+			Ref("likes"),
 	}
 }
 

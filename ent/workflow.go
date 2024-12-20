@@ -21,6 +21,8 @@ type Workflow struct {
 	CreateTime time.Time `json:"create_time,omitempty"`
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
+	// DeletedAt holds the value of the "deleted_at" field.
+	DeletedAt time.Time `json:"deleted_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Type holds the value of the "type" field.
@@ -43,7 +45,7 @@ func (*Workflow) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case workflow.FieldName, workflow.FieldType, workflow.FieldJSON:
 			values[i] = new(sql.NullString)
-		case workflow.FieldCreateTime, workflow.FieldUpdateTime:
+		case workflow.FieldCreateTime, workflow.FieldUpdateTime, workflow.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -77,6 +79,12 @@ func (w *Workflow) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field update_time", values[i])
 			} else if value.Valid {
 				w.UpdateTime = value.Time
+			}
+		case workflow.FieldDeletedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
+			} else if value.Valid {
+				w.DeletedAt = value.Time
 			}
 		case workflow.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -143,6 +151,9 @@ func (w *Workflow) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("update_time=")
 	builder.WriteString(w.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("deleted_at=")
+	builder.WriteString(w.DeletedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(w.Name)

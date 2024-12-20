@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ent/predicate"
 	"github.com/MiaoMint/animaerd/ent/tag"
@@ -34,6 +35,26 @@ func (au *ArtworkUpdate) Where(ps ...predicate.Artwork) *ArtworkUpdate {
 // SetUpdateTime sets the "update_time" field.
 func (au *ArtworkUpdate) SetUpdateTime(t time.Time) *ArtworkUpdate {
 	au.mutation.SetUpdateTime(t)
+	return au
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (au *ArtworkUpdate) SetDeletedAt(t time.Time) *ArtworkUpdate {
+	au.mutation.SetDeletedAt(t)
+	return au
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (au *ArtworkUpdate) SetNillableDeletedAt(t *time.Time) *ArtworkUpdate {
+	if t != nil {
+		au.SetDeletedAt(*t)
+	}
+	return au
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (au *ArtworkUpdate) ClearDeletedAt() *ArtworkUpdate {
+	au.mutation.ClearDeletedAt()
 	return au
 }
 
@@ -112,14 +133,6 @@ func (au *ArtworkUpdate) SetOwnerID(id int) *ArtworkUpdate {
 	return au
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (au *ArtworkUpdate) SetNillableOwnerID(id *int) *ArtworkUpdate {
-	if id != nil {
-		au = au.SetOwnerID(*id)
-	}
-	return au
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (au *ArtworkUpdate) SetOwner(u *User) *ArtworkUpdate {
 	return au.SetOwnerID(u.ID)
@@ -140,38 +153,49 @@ func (au *ArtworkUpdate) AddLikes(u ...*User) *ArtworkUpdate {
 	return au.AddLikeIDs(ids...)
 }
 
-// AddFavoriteIDs adds the "favorites" edge to the User entity by IDs.
-func (au *ArtworkUpdate) AddFavoriteIDs(ids ...int) *ArtworkUpdate {
-	au.mutation.AddFavoriteIDs(ids...)
-	return au
-}
-
-// AddFavorites adds the "favorites" edges to the User entity.
-func (au *ArtworkUpdate) AddFavorites(u ...*User) *ArtworkUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return au.AddFavoriteIDs(ids...)
-}
-
 // SetMediaID sets the "media" edge to the Media entity by ID.
 func (au *ArtworkUpdate) SetMediaID(id int) *ArtworkUpdate {
 	au.mutation.SetMediaID(id)
 	return au
 }
 
-// SetNillableMediaID sets the "media" edge to the Media entity by ID if the given value is not nil.
-func (au *ArtworkUpdate) SetNillableMediaID(id *int) *ArtworkUpdate {
+// SetMedia sets the "media" edge to the Media entity.
+func (au *ArtworkUpdate) SetMedia(m *Media) *ArtworkUpdate {
+	return au.SetMediaID(m.ID)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (au *ArtworkUpdate) AddCommentIDs(ids ...int) *ArtworkUpdate {
+	au.mutation.AddCommentIDs(ids...)
+	return au
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (au *ArtworkUpdate) AddComments(c ...*Comment) *ArtworkUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return au.AddCommentIDs(ids...)
+}
+
+// SetCommentGenerateID sets the "comment_generate" edge to the Comment entity by ID.
+func (au *ArtworkUpdate) SetCommentGenerateID(id int) *ArtworkUpdate {
+	au.mutation.SetCommentGenerateID(id)
+	return au
+}
+
+// SetNillableCommentGenerateID sets the "comment_generate" edge to the Comment entity by ID if the given value is not nil.
+func (au *ArtworkUpdate) SetNillableCommentGenerateID(id *int) *ArtworkUpdate {
 	if id != nil {
-		au = au.SetMediaID(*id)
+		au = au.SetCommentGenerateID(*id)
 	}
 	return au
 }
 
-// SetMedia sets the "media" edge to the Media entity.
-func (au *ArtworkUpdate) SetMedia(m *Media) *ArtworkUpdate {
-	return au.SetMediaID(m.ID)
+// SetCommentGenerate sets the "comment_generate" edge to the Comment entity.
+func (au *ArtworkUpdate) SetCommentGenerate(c *Comment) *ArtworkUpdate {
+	return au.SetCommentGenerateID(c.ID)
 }
 
 // Mutation returns the ArtworkMutation object of the builder.
@@ -227,36 +251,44 @@ func (au *ArtworkUpdate) RemoveLikes(u ...*User) *ArtworkUpdate {
 	return au.RemoveLikeIDs(ids...)
 }
 
-// ClearFavorites clears all "favorites" edges to the User entity.
-func (au *ArtworkUpdate) ClearFavorites() *ArtworkUpdate {
-	au.mutation.ClearFavorites()
-	return au
-}
-
-// RemoveFavoriteIDs removes the "favorites" edge to User entities by IDs.
-func (au *ArtworkUpdate) RemoveFavoriteIDs(ids ...int) *ArtworkUpdate {
-	au.mutation.RemoveFavoriteIDs(ids...)
-	return au
-}
-
-// RemoveFavorites removes "favorites" edges to User entities.
-func (au *ArtworkUpdate) RemoveFavorites(u ...*User) *ArtworkUpdate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return au.RemoveFavoriteIDs(ids...)
-}
-
 // ClearMedia clears the "media" edge to the Media entity.
 func (au *ArtworkUpdate) ClearMedia() *ArtworkUpdate {
 	au.mutation.ClearMedia()
 	return au
 }
 
+// ClearComments clears all "comments" edges to the Comment entity.
+func (au *ArtworkUpdate) ClearComments() *ArtworkUpdate {
+	au.mutation.ClearComments()
+	return au
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (au *ArtworkUpdate) RemoveCommentIDs(ids ...int) *ArtworkUpdate {
+	au.mutation.RemoveCommentIDs(ids...)
+	return au
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (au *ArtworkUpdate) RemoveComments(c ...*Comment) *ArtworkUpdate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return au.RemoveCommentIDs(ids...)
+}
+
+// ClearCommentGenerate clears the "comment_generate" edge to the Comment entity.
+func (au *ArtworkUpdate) ClearCommentGenerate() *ArtworkUpdate {
+	au.mutation.ClearCommentGenerate()
+	return au
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (au *ArtworkUpdate) Save(ctx context.Context) (int, error) {
-	au.defaults()
+	if err := au.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, au.sqlSave, au.mutation, au.hooks)
 }
 
@@ -283,14 +315,32 @@ func (au *ArtworkUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (au *ArtworkUpdate) defaults() {
+func (au *ArtworkUpdate) defaults() error {
 	if _, ok := au.mutation.UpdateTime(); !ok {
+		if artwork.UpdateDefaultUpdateTime == nil {
+			return fmt.Errorf("ent: uninitialized artwork.UpdateDefaultUpdateTime (forgotten import ent/runtime?)")
+		}
 		v := artwork.UpdateDefaultUpdateTime()
 		au.mutation.SetUpdateTime(v)
 	}
+	return nil
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (au *ArtworkUpdate) check() error {
+	if au.mutation.OwnerCleared() && len(au.mutation.OwnerIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Artwork.owner"`)
+	}
+	if au.mutation.MediaCleared() && len(au.mutation.MediaIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Artwork.media"`)
+	}
+	return nil
 }
 
 func (au *ArtworkUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := au.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(artwork.Table, artwork.Columns, sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt))
 	if ps := au.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -301,6 +351,12 @@ func (au *ArtworkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := au.mutation.UpdateTime(); ok {
 		_spec.SetField(artwork.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := au.mutation.DeletedAt(); ok {
+		_spec.SetField(artwork.FieldDeletedAt, field.TypeTime, value)
+	}
+	if au.mutation.DeletedAtCleared() {
+		_spec.ClearField(artwork.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := au.mutation.Title(); ok {
 		_spec.SetField(artwork.FieldTitle, field.TypeString, value)
@@ -436,51 +492,6 @@ func (au *ArtworkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if au.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   artwork.FavoritesTable,
-			Columns: artwork.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := au.mutation.RemovedFavoritesIDs(); len(nodes) > 0 && !au.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   artwork.FavoritesTable,
-			Columns: artwork.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := au.mutation.FavoritesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   artwork.FavoritesTable,
-			Columns: artwork.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if au.mutation.MediaCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -503,6 +514,80 @@ func (au *ArtworkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(media.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   artwork.CommentsTable,
+			Columns: artwork.CommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !au.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   artwork.CommentsTable,
+			Columns: artwork.CommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   artwork.CommentsTable,
+			Columns: artwork.CommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.CommentGenerateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   artwork.CommentGenerateTable,
+			Columns: []string{artwork.CommentGenerateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CommentGenerateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   artwork.CommentGenerateTable,
+			Columns: []string{artwork.CommentGenerateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -533,6 +618,26 @@ type ArtworkUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (auo *ArtworkUpdateOne) SetUpdateTime(t time.Time) *ArtworkUpdateOne {
 	auo.mutation.SetUpdateTime(t)
+	return auo
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (auo *ArtworkUpdateOne) SetDeletedAt(t time.Time) *ArtworkUpdateOne {
+	auo.mutation.SetDeletedAt(t)
+	return auo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (auo *ArtworkUpdateOne) SetNillableDeletedAt(t *time.Time) *ArtworkUpdateOne {
+	if t != nil {
+		auo.SetDeletedAt(*t)
+	}
+	return auo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (auo *ArtworkUpdateOne) ClearDeletedAt() *ArtworkUpdateOne {
+	auo.mutation.ClearDeletedAt()
 	return auo
 }
 
@@ -611,14 +716,6 @@ func (auo *ArtworkUpdateOne) SetOwnerID(id int) *ArtworkUpdateOne {
 	return auo
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (auo *ArtworkUpdateOne) SetNillableOwnerID(id *int) *ArtworkUpdateOne {
-	if id != nil {
-		auo = auo.SetOwnerID(*id)
-	}
-	return auo
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (auo *ArtworkUpdateOne) SetOwner(u *User) *ArtworkUpdateOne {
 	return auo.SetOwnerID(u.ID)
@@ -639,38 +736,49 @@ func (auo *ArtworkUpdateOne) AddLikes(u ...*User) *ArtworkUpdateOne {
 	return auo.AddLikeIDs(ids...)
 }
 
-// AddFavoriteIDs adds the "favorites" edge to the User entity by IDs.
-func (auo *ArtworkUpdateOne) AddFavoriteIDs(ids ...int) *ArtworkUpdateOne {
-	auo.mutation.AddFavoriteIDs(ids...)
-	return auo
-}
-
-// AddFavorites adds the "favorites" edges to the User entity.
-func (auo *ArtworkUpdateOne) AddFavorites(u ...*User) *ArtworkUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return auo.AddFavoriteIDs(ids...)
-}
-
 // SetMediaID sets the "media" edge to the Media entity by ID.
 func (auo *ArtworkUpdateOne) SetMediaID(id int) *ArtworkUpdateOne {
 	auo.mutation.SetMediaID(id)
 	return auo
 }
 
-// SetNillableMediaID sets the "media" edge to the Media entity by ID if the given value is not nil.
-func (auo *ArtworkUpdateOne) SetNillableMediaID(id *int) *ArtworkUpdateOne {
+// SetMedia sets the "media" edge to the Media entity.
+func (auo *ArtworkUpdateOne) SetMedia(m *Media) *ArtworkUpdateOne {
+	return auo.SetMediaID(m.ID)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (auo *ArtworkUpdateOne) AddCommentIDs(ids ...int) *ArtworkUpdateOne {
+	auo.mutation.AddCommentIDs(ids...)
+	return auo
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (auo *ArtworkUpdateOne) AddComments(c ...*Comment) *ArtworkUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return auo.AddCommentIDs(ids...)
+}
+
+// SetCommentGenerateID sets the "comment_generate" edge to the Comment entity by ID.
+func (auo *ArtworkUpdateOne) SetCommentGenerateID(id int) *ArtworkUpdateOne {
+	auo.mutation.SetCommentGenerateID(id)
+	return auo
+}
+
+// SetNillableCommentGenerateID sets the "comment_generate" edge to the Comment entity by ID if the given value is not nil.
+func (auo *ArtworkUpdateOne) SetNillableCommentGenerateID(id *int) *ArtworkUpdateOne {
 	if id != nil {
-		auo = auo.SetMediaID(*id)
+		auo = auo.SetCommentGenerateID(*id)
 	}
 	return auo
 }
 
-// SetMedia sets the "media" edge to the Media entity.
-func (auo *ArtworkUpdateOne) SetMedia(m *Media) *ArtworkUpdateOne {
-	return auo.SetMediaID(m.ID)
+// SetCommentGenerate sets the "comment_generate" edge to the Comment entity.
+func (auo *ArtworkUpdateOne) SetCommentGenerate(c *Comment) *ArtworkUpdateOne {
+	return auo.SetCommentGenerateID(c.ID)
 }
 
 // Mutation returns the ArtworkMutation object of the builder.
@@ -726,30 +834,36 @@ func (auo *ArtworkUpdateOne) RemoveLikes(u ...*User) *ArtworkUpdateOne {
 	return auo.RemoveLikeIDs(ids...)
 }
 
-// ClearFavorites clears all "favorites" edges to the User entity.
-func (auo *ArtworkUpdateOne) ClearFavorites() *ArtworkUpdateOne {
-	auo.mutation.ClearFavorites()
-	return auo
-}
-
-// RemoveFavoriteIDs removes the "favorites" edge to User entities by IDs.
-func (auo *ArtworkUpdateOne) RemoveFavoriteIDs(ids ...int) *ArtworkUpdateOne {
-	auo.mutation.RemoveFavoriteIDs(ids...)
-	return auo
-}
-
-// RemoveFavorites removes "favorites" edges to User entities.
-func (auo *ArtworkUpdateOne) RemoveFavorites(u ...*User) *ArtworkUpdateOne {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return auo.RemoveFavoriteIDs(ids...)
-}
-
 // ClearMedia clears the "media" edge to the Media entity.
 func (auo *ArtworkUpdateOne) ClearMedia() *ArtworkUpdateOne {
 	auo.mutation.ClearMedia()
+	return auo
+}
+
+// ClearComments clears all "comments" edges to the Comment entity.
+func (auo *ArtworkUpdateOne) ClearComments() *ArtworkUpdateOne {
+	auo.mutation.ClearComments()
+	return auo
+}
+
+// RemoveCommentIDs removes the "comments" edge to Comment entities by IDs.
+func (auo *ArtworkUpdateOne) RemoveCommentIDs(ids ...int) *ArtworkUpdateOne {
+	auo.mutation.RemoveCommentIDs(ids...)
+	return auo
+}
+
+// RemoveComments removes "comments" edges to Comment entities.
+func (auo *ArtworkUpdateOne) RemoveComments(c ...*Comment) *ArtworkUpdateOne {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return auo.RemoveCommentIDs(ids...)
+}
+
+// ClearCommentGenerate clears the "comment_generate" edge to the Comment entity.
+func (auo *ArtworkUpdateOne) ClearCommentGenerate() *ArtworkUpdateOne {
+	auo.mutation.ClearCommentGenerate()
 	return auo
 }
 
@@ -768,7 +882,9 @@ func (auo *ArtworkUpdateOne) Select(field string, fields ...string) *ArtworkUpda
 
 // Save executes the query and returns the updated Artwork entity.
 func (auo *ArtworkUpdateOne) Save(ctx context.Context) (*Artwork, error) {
-	auo.defaults()
+	if err := auo.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, auo.sqlSave, auo.mutation, auo.hooks)
 }
 
@@ -795,14 +911,32 @@ func (auo *ArtworkUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (auo *ArtworkUpdateOne) defaults() {
+func (auo *ArtworkUpdateOne) defaults() error {
 	if _, ok := auo.mutation.UpdateTime(); !ok {
+		if artwork.UpdateDefaultUpdateTime == nil {
+			return fmt.Errorf("ent: uninitialized artwork.UpdateDefaultUpdateTime (forgotten import ent/runtime?)")
+		}
 		v := artwork.UpdateDefaultUpdateTime()
 		auo.mutation.SetUpdateTime(v)
 	}
+	return nil
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (auo *ArtworkUpdateOne) check() error {
+	if auo.mutation.OwnerCleared() && len(auo.mutation.OwnerIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Artwork.owner"`)
+	}
+	if auo.mutation.MediaCleared() && len(auo.mutation.MediaIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Artwork.media"`)
+	}
+	return nil
 }
 
 func (auo *ArtworkUpdateOne) sqlSave(ctx context.Context) (_node *Artwork, err error) {
+	if err := auo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(artwork.Table, artwork.Columns, sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt))
 	id, ok := auo.mutation.ID()
 	if !ok {
@@ -830,6 +964,12 @@ func (auo *ArtworkUpdateOne) sqlSave(ctx context.Context) (_node *Artwork, err e
 	}
 	if value, ok := auo.mutation.UpdateTime(); ok {
 		_spec.SetField(artwork.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := auo.mutation.DeletedAt(); ok {
+		_spec.SetField(artwork.FieldDeletedAt, field.TypeTime, value)
+	}
+	if auo.mutation.DeletedAtCleared() {
+		_spec.ClearField(artwork.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := auo.mutation.Title(); ok {
 		_spec.SetField(artwork.FieldTitle, field.TypeString, value)
@@ -965,51 +1105,6 @@ func (auo *ArtworkUpdateOne) sqlSave(ctx context.Context) (_node *Artwork, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if auo.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   artwork.FavoritesTable,
-			Columns: artwork.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := auo.mutation.RemovedFavoritesIDs(); len(nodes) > 0 && !auo.mutation.FavoritesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   artwork.FavoritesTable,
-			Columns: artwork.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := auo.mutation.FavoritesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   artwork.FavoritesTable,
-			Columns: artwork.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if auo.mutation.MediaCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1032,6 +1127,80 @@ func (auo *ArtworkUpdateOne) sqlSave(ctx context.Context) (_node *Artwork, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(media.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   artwork.CommentsTable,
+			Columns: artwork.CommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedCommentsIDs(); len(nodes) > 0 && !auo.mutation.CommentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   artwork.CommentsTable,
+			Columns: artwork.CommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   artwork.CommentsTable,
+			Columns: artwork.CommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CommentGenerateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   artwork.CommentGenerateTable,
+			Columns: []string{artwork.CommentGenerateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CommentGenerateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   artwork.CommentGenerateTable,
+			Columns: []string{artwork.CommentGenerateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

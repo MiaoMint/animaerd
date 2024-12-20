@@ -65,6 +65,11 @@ func UpdateTime(v time.Time) predicate.Artwork {
 	return predicate.Artwork(sql.FieldEQ(FieldUpdateTime, v))
 }
 
+// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
+func DeletedAt(v time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldEQ(FieldDeletedAt, v))
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.Artwork {
 	return predicate.Artwork(sql.FieldEQ(FieldTitle, v))
@@ -158,6 +163,56 @@ func UpdateTimeLT(v time.Time) predicate.Artwork {
 // UpdateTimeLTE applies the LTE predicate on the "update_time" field.
 func UpdateTimeLTE(v time.Time) predicate.Artwork {
 	return predicate.Artwork(sql.FieldLTE(FieldUpdateTime, v))
+}
+
+// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
+func DeletedAtEQ(v time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
+func DeletedAtNEQ(v time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldNEQ(FieldDeletedAt, v))
+}
+
+// DeletedAtIn applies the In predicate on the "deleted_at" field.
+func DeletedAtIn(vs ...time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
+func DeletedAtNotIn(vs ...time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldNotIn(FieldDeletedAt, vs...))
+}
+
+// DeletedAtGT applies the GT predicate on the "deleted_at" field.
+func DeletedAtGT(v time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldGT(FieldDeletedAt, v))
+}
+
+// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
+func DeletedAtGTE(v time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldGTE(FieldDeletedAt, v))
+}
+
+// DeletedAtLT applies the LT predicate on the "deleted_at" field.
+func DeletedAtLT(v time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldLT(FieldDeletedAt, v))
+}
+
+// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
+func DeletedAtLTE(v time.Time) predicate.Artwork {
+	return predicate.Artwork(sql.FieldLTE(FieldDeletedAt, v))
+}
+
+// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
+func DeletedAtIsNil() predicate.Artwork {
+	return predicate.Artwork(sql.FieldIsNull(FieldDeletedAt))
+}
+
+// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
+func DeletedAtNotNil() predicate.Artwork {
+	return predicate.Artwork(sql.FieldNotNull(FieldDeletedAt))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.
@@ -389,29 +444,6 @@ func HasLikesWith(preds ...predicate.User) predicate.Artwork {
 	})
 }
 
-// HasFavorites applies the HasEdge predicate on the "favorites" edge.
-func HasFavorites() predicate.Artwork {
-	return predicate.Artwork(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, FavoritesTable, FavoritesPrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasFavoritesWith applies the HasEdge predicate on the "favorites" edge with a given conditions (other predicates).
-func HasFavoritesWith(preds ...predicate.User) predicate.Artwork {
-	return predicate.Artwork(func(s *sql.Selector) {
-		step := newFavoritesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasMedia applies the HasEdge predicate on the "media" edge.
 func HasMedia() predicate.Artwork {
 	return predicate.Artwork(func(s *sql.Selector) {
@@ -427,6 +459,52 @@ func HasMedia() predicate.Artwork {
 func HasMediaWith(preds ...predicate.Media) predicate.Artwork {
 	return predicate.Artwork(func(s *sql.Selector) {
 		step := newMediaStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasComments applies the HasEdge predicate on the "comments" edge.
+func HasComments() predicate.Artwork {
+	return predicate.Artwork(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, CommentsTable, CommentsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCommentsWith applies the HasEdge predicate on the "comments" edge with a given conditions (other predicates).
+func HasCommentsWith(preds ...predicate.Comment) predicate.Artwork {
+	return predicate.Artwork(func(s *sql.Selector) {
+		step := newCommentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCommentGenerate applies the HasEdge predicate on the "comment_generate" edge.
+func HasCommentGenerate() predicate.Artwork {
+	return predicate.Artwork(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, CommentGenerateTable, CommentGenerateColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCommentGenerateWith applies the HasEdge predicate on the "comment_generate" edge with a given conditions (other predicates).
+func HasCommentGenerateWith(preds ...predicate.Comment) predicate.Artwork {
+	return predicate.Artwork(func(s *sql.Selector) {
+		step := newCommentGenerateStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

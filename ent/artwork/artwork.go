@@ -5,6 +5,7 @@ package artwork
 import (
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -18,6 +19,8 @@ const (
 	FieldCreateTime = "create_time"
 	// FieldUpdateTime holds the string denoting the update_time field in the database.
 	FieldUpdateTime = "update_time"
+	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
+	FieldDeletedAt = "deleted_at"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
 	// FieldDescription holds the string denoting the description field in the database.
@@ -30,10 +33,12 @@ const (
 	EdgeOwner = "owner"
 	// EdgeLikes holds the string denoting the likes edge name in mutations.
 	EdgeLikes = "likes"
-	// EdgeFavorites holds the string denoting the favorites edge name in mutations.
-	EdgeFavorites = "favorites"
 	// EdgeMedia holds the string denoting the media edge name in mutations.
 	EdgeMedia = "media"
+	// EdgeComments holds the string denoting the comments edge name in mutations.
+	EdgeComments = "comments"
+	// EdgeCommentGenerate holds the string denoting the comment_generate edge name in mutations.
+	EdgeCommentGenerate = "comment_generate"
 	// Table holds the table name of the artwork in the database.
 	Table = "artworks"
 	// TagsTable is the table that holds the tags relation/edge. The primary key declared below.
@@ -53,11 +58,6 @@ const (
 	// LikesInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	LikesInverseTable = "users"
-	// FavoritesTable is the table that holds the favorites relation/edge. The primary key declared below.
-	FavoritesTable = "user_favorites"
-	// FavoritesInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	FavoritesInverseTable = "users"
 	// MediaTable is the table that holds the media relation/edge.
 	MediaTable = "artworks"
 	// MediaInverseTable is the table name for the Media entity.
@@ -65,6 +65,18 @@ const (
 	MediaInverseTable = "media"
 	// MediaColumn is the table column denoting the media relation/edge.
 	MediaColumn = "media_artworks"
+	// CommentsTable is the table that holds the comments relation/edge. The primary key declared below.
+	CommentsTable = "artwork_comments"
+	// CommentsInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentsInverseTable = "comments"
+	// CommentGenerateTable is the table that holds the comment_generate relation/edge.
+	CommentGenerateTable = "artworks"
+	// CommentGenerateInverseTable is the table name for the Comment entity.
+	// It exists in this package in order to avoid circular dependency with the "comment" package.
+	CommentGenerateInverseTable = "comments"
+	// CommentGenerateColumn is the table column denoting the comment_generate relation/edge.
+	CommentGenerateColumn = "comment_generated_artwork"
 )
 
 // Columns holds all SQL columns for artwork fields.
@@ -72,6 +84,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreateTime,
 	FieldUpdateTime,
+	FieldDeletedAt,
 	FieldTitle,
 	FieldDescription,
 	FieldIsAi,
@@ -80,6 +93,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "artworks"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"comment_generated_artwork",
 	"media_artworks",
 	"user_artworks",
 }
@@ -91,9 +105,9 @@ var (
 	// LikesPrimaryKey and LikesColumn2 are the table columns denoting the
 	// primary key for the likes relation (M2M).
 	LikesPrimaryKey = []string{"user_id", "artwork_id"}
-	// FavoritesPrimaryKey and FavoritesColumn2 are the table columns denoting the
-	// primary key for the favorites relation (M2M).
-	FavoritesPrimaryKey = []string{"user_id", "artwork_id"}
+	// CommentsPrimaryKey and CommentsColumn2 are the table columns denoting the
+	// primary key for the comments relation (M2M).
+	CommentsPrimaryKey = []string{"artwork_id", "comment_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -111,7 +125,14 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/MiaoMint/animaerd/ent/runtime"
 var (
+	Hooks        [1]ent.Hook
+	Interceptors [1]ent.Interceptor
 	// DefaultCreateTime holds the default value on creation for the "create_time" field.
 	DefaultCreateTime func() time.Time
 	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
@@ -138,6 +159,11 @@ func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdateTime orders the results by the update_time field.
 func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+}
+
+// ByDeletedAt orders the results by the deleted_at field.
+func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
 }
 
 // ByTitle orders the results by the title field.
@@ -190,24 +216,31 @@ func ByLikes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByFavoritesCount orders the results by favorites count.
-func ByFavoritesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newFavoritesStep(), opts...)
-	}
-}
-
-// ByFavorites orders the results by favorites terms.
-func ByFavorites(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newFavoritesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByMediaField orders the results by media field.
 func ByMediaField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newMediaStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByCommentsCount orders the results by comments count.
+func ByCommentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCommentsStep(), opts...)
+	}
+}
+
+// ByComments orders the results by comments terms.
+func ByComments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCommentGenerateField orders the results by comment_generate field.
+func ByCommentGenerateField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCommentGenerateStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newTagsStep() *sqlgraph.Step {
@@ -231,17 +264,24 @@ func newLikesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, true, LikesTable, LikesPrimaryKey...),
 	)
 }
-func newFavoritesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(FavoritesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, FavoritesTable, FavoritesPrimaryKey...),
-	)
-}
 func newMediaStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MediaInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, MediaTable, MediaColumn),
+	)
+}
+func newCommentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, CommentsTable, CommentsPrimaryKey...),
+	)
+}
+func newCommentGenerateStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CommentGenerateInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, CommentGenerateTable, CommentGenerateColumn),
 	)
 }

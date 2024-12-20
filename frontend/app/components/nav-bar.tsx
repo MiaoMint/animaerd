@@ -23,7 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export default function NavBar({ className }: { className?: string }) {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <nav

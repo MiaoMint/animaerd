@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,12 @@ type TagUpdate struct {
 // Where appends a list predicates to the TagUpdate builder.
 func (tu *TagUpdate) Where(ps ...predicate.Tag) *TagUpdate {
 	tu.mutation.Where(ps...)
+	return tu
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (tu *TagUpdate) SetUpdateTime(t time.Time) *TagUpdate {
+	tu.mutation.SetUpdateTime(t)
 	return tu
 }
 
@@ -99,6 +106,7 @@ func (tu *TagUpdate) RemoveArtworks(a ...*Artwork) *TagUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TagUpdate) Save(ctx context.Context) (int, error) {
+	tu.defaults()
 	return withHooks(ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
@@ -124,6 +132,14 @@ func (tu *TagUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tu *TagUpdate) defaults() {
+	if _, ok := tu.mutation.UpdateTime(); !ok {
+		v := tag.UpdateDefaultUpdateTime()
+		tu.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (tu *TagUpdate) check() error {
 	if v, ok := tu.mutation.GetType(); ok {
@@ -145,6 +161,9 @@ func (tu *TagUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tu.mutation.UpdateTime(); ok {
+		_spec.SetField(tag.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := tu.mutation.Name(); ok {
 		_spec.SetField(tag.FieldName, field.TypeString, value)
@@ -215,6 +234,12 @@ type TagUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *TagMutation
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (tuo *TagUpdateOne) SetUpdateTime(t time.Time) *TagUpdateOne {
+	tuo.mutation.SetUpdateTime(t)
+	return tuo
 }
 
 // SetName sets the "name" field.
@@ -301,6 +326,7 @@ func (tuo *TagUpdateOne) Select(field string, fields ...string) *TagUpdateOne {
 
 // Save executes the query and returns the updated Tag entity.
 func (tuo *TagUpdateOne) Save(ctx context.Context) (*Tag, error) {
+	tuo.defaults()
 	return withHooks(ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
@@ -323,6 +349,14 @@ func (tuo *TagUpdateOne) Exec(ctx context.Context) error {
 func (tuo *TagUpdateOne) ExecX(ctx context.Context) {
 	if err := tuo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (tuo *TagUpdateOne) defaults() {
+	if _, ok := tuo.mutation.UpdateTime(); !ok {
+		v := tag.UpdateDefaultUpdateTime()
+		tuo.mutation.SetUpdateTime(v)
 	}
 }
 
@@ -364,6 +398,9 @@ func (tuo *TagUpdateOne) sqlSave(ctx context.Context) (_node *Tag, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tuo.mutation.UpdateTime(); ok {
+		_spec.SetField(tag.FieldUpdateTime, field.TypeTime, value)
 	}
 	if value, ok := tuo.mutation.Name(); ok {
 		_spec.SetField(tag.FieldName, field.TypeString, value)

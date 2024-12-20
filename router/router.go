@@ -17,7 +17,6 @@ func InitRouter(app *fiber.App) {
 
 	artworkGroup := app.Group("/artwork")
 	artworkGroup.Get("/", handler.GetArtworkList)
-	artworkGroup.Get("/:id", handler.GetArtwork)
 
 	// 以下需要普通用户鉴权的路由
 	app.Use(jwtware.New(jwtware.Config{
@@ -38,16 +37,25 @@ func InitRouter(app *fiber.App) {
 		},
 	}))
 
+	// 用户相关路由
 	userGroup := app.Group("/user")
 	userGroup.Get("/", handler.GetUser)
 	userGroup.Get("/:id", handler.GetUserById)
 	userGroup.Put("/", handler.UpdateUser)
 	userGroup.Put("/avatar", handler.UpdateUserAvatar)
 
-	// 上传媒体文件
+	// artwork 相关路由
+	artworkGroup.Get("/:id", handler.GetArtwork)
+	artworkGroup.Get("/:id/comments", handler.GetArtworkComments)
 	artworkGroup.Post("/media", handler.UploadMedia)
-	// 创建 artwork
 	artworkGroup.Post("/", handler.CreateArtwork)
+	// 评论
+	artworkGroup.Post("/:id/comment", handler.CreateArtworkComment)
+	artworkGroup.Post("/:id/comment/:comment_id", handler.CreateReplyArtworkComment)
+	artworkGroup.Get("/:id/comment/:comment_id", handler.GetArtworkCommentsByChild)
+	artworkGroup.Post("/:id/like", handler.LikeArtwork)
+	artworkGroup.Delete("/:id/like", handler.UnlikeArtwork)
+	artworkGroup.Get("/:id/like", handler.GetArtworkLikeStatus)
 
 	// 以下需要管理员鉴权的路由
 	app.Use(func(c *fiber.Ctx) error {

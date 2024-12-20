@@ -17,6 +17,7 @@ interface ArtworkResponse {
   tags: string[];
   user: UserResponse;
   likes: number;
+  is_liked: boolean;
   created_time: string;
 }
 

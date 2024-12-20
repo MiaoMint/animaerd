@@ -34,6 +34,26 @@ func (wu *WorkflowUpdate) SetUpdateTime(t time.Time) *WorkflowUpdate {
 	return wu
 }
 
+// SetDeletedAt sets the "deleted_at" field.
+func (wu *WorkflowUpdate) SetDeletedAt(t time.Time) *WorkflowUpdate {
+	wu.mutation.SetDeletedAt(t)
+	return wu
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (wu *WorkflowUpdate) SetNillableDeletedAt(t *time.Time) *WorkflowUpdate {
+	if t != nil {
+		wu.SetDeletedAt(*t)
+	}
+	return wu
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (wu *WorkflowUpdate) ClearDeletedAt() *WorkflowUpdate {
+	wu.mutation.ClearDeletedAt()
+	return wu
+}
+
 // SetName sets the "name" field.
 func (wu *WorkflowUpdate) SetName(s string) *WorkflowUpdate {
 	wu.mutation.SetName(s)
@@ -97,7 +117,9 @@ func (wu *WorkflowUpdate) Mutation() *WorkflowMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wu *WorkflowUpdate) Save(ctx context.Context) (int, error) {
-	wu.defaults()
+	if err := wu.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, wu.sqlSave, wu.mutation, wu.hooks)
 }
 
@@ -124,11 +146,15 @@ func (wu *WorkflowUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (wu *WorkflowUpdate) defaults() {
+func (wu *WorkflowUpdate) defaults() error {
 	if _, ok := wu.mutation.UpdateTime(); !ok {
+		if workflow.UpdateDefaultUpdateTime == nil {
+			return fmt.Errorf("ent: uninitialized workflow.UpdateDefaultUpdateTime (forgotten import ent/runtime?)")
+		}
 		v := workflow.UpdateDefaultUpdateTime()
 		wu.mutation.SetUpdateTime(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -155,6 +181,12 @@ func (wu *WorkflowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := wu.mutation.UpdateTime(); ok {
 		_spec.SetField(workflow.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := wu.mutation.DeletedAt(); ok {
+		_spec.SetField(workflow.FieldDeletedAt, field.TypeTime, value)
+	}
+	if wu.mutation.DeletedAtCleared() {
+		_spec.ClearField(workflow.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := wu.mutation.Name(); ok {
 		_spec.SetField(workflow.FieldName, field.TypeString, value)
@@ -191,6 +223,26 @@ type WorkflowUpdateOne struct {
 // SetUpdateTime sets the "update_time" field.
 func (wuo *WorkflowUpdateOne) SetUpdateTime(t time.Time) *WorkflowUpdateOne {
 	wuo.mutation.SetUpdateTime(t)
+	return wuo
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (wuo *WorkflowUpdateOne) SetDeletedAt(t time.Time) *WorkflowUpdateOne {
+	wuo.mutation.SetDeletedAt(t)
+	return wuo
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (wuo *WorkflowUpdateOne) SetNillableDeletedAt(t *time.Time) *WorkflowUpdateOne {
+	if t != nil {
+		wuo.SetDeletedAt(*t)
+	}
+	return wuo
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (wuo *WorkflowUpdateOne) ClearDeletedAt() *WorkflowUpdateOne {
+	wuo.mutation.ClearDeletedAt()
 	return wuo
 }
 
@@ -270,7 +322,9 @@ func (wuo *WorkflowUpdateOne) Select(field string, fields ...string) *WorkflowUp
 
 // Save executes the query and returns the updated Workflow entity.
 func (wuo *WorkflowUpdateOne) Save(ctx context.Context) (*Workflow, error) {
-	wuo.defaults()
+	if err := wuo.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, wuo.sqlSave, wuo.mutation, wuo.hooks)
 }
 
@@ -297,11 +351,15 @@ func (wuo *WorkflowUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (wuo *WorkflowUpdateOne) defaults() {
+func (wuo *WorkflowUpdateOne) defaults() error {
 	if _, ok := wuo.mutation.UpdateTime(); !ok {
+		if workflow.UpdateDefaultUpdateTime == nil {
+			return fmt.Errorf("ent: uninitialized workflow.UpdateDefaultUpdateTime (forgotten import ent/runtime?)")
+		}
 		v := workflow.UpdateDefaultUpdateTime()
 		wuo.mutation.SetUpdateTime(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -345,6 +403,12 @@ func (wuo *WorkflowUpdateOne) sqlSave(ctx context.Context) (_node *Workflow, err
 	}
 	if value, ok := wuo.mutation.UpdateTime(); ok {
 		_spec.SetField(workflow.FieldUpdateTime, field.TypeTime, value)
+	}
+	if value, ok := wuo.mutation.DeletedAt(); ok {
+		_spec.SetField(workflow.FieldDeletedAt, field.TypeTime, value)
+	}
+	if wuo.mutation.DeletedAtCleared() {
+		_spec.ClearField(workflow.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := wuo.mutation.Name(); ok {
 		_spec.SetField(workflow.FieldName, field.TypeString, value)

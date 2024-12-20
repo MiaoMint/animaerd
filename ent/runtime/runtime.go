@@ -2,7 +2,171 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/MiaoMint/animaerd/ent/runtime.go
+import (
+	"time"
+
+	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/comfyuinode"
+	"github.com/MiaoMint/animaerd/ent/comment"
+	"github.com/MiaoMint/animaerd/ent/media"
+	"github.com/MiaoMint/animaerd/ent/schema"
+	"github.com/MiaoMint/animaerd/ent/tag"
+	"github.com/MiaoMint/animaerd/ent/user"
+	"github.com/MiaoMint/animaerd/ent/workflow"
+)
+
+// The init function reads all schema descriptors with runtime code
+// (default values, validators, hooks and policies) and stitches it
+// to their package variables.
+func init() {
+	artworkMixin := schema.Artwork{}.Mixin()
+	artworkMixinHooks1 := artworkMixin[1].Hooks()
+	artwork.Hooks[0] = artworkMixinHooks1[0]
+	artworkMixinInters1 := artworkMixin[1].Interceptors()
+	artwork.Interceptors[0] = artworkMixinInters1[0]
+	artworkMixinFields0 := artworkMixin[0].Fields()
+	_ = artworkMixinFields0
+	artworkFields := schema.Artwork{}.Fields()
+	_ = artworkFields
+	// artworkDescCreateTime is the schema descriptor for create_time field.
+	artworkDescCreateTime := artworkMixinFields0[0].Descriptor()
+	// artwork.DefaultCreateTime holds the default value on creation for the create_time field.
+	artwork.DefaultCreateTime = artworkDescCreateTime.Default.(func() time.Time)
+	// artworkDescUpdateTime is the schema descriptor for update_time field.
+	artworkDescUpdateTime := artworkMixinFields0[1].Descriptor()
+	// artwork.DefaultUpdateTime holds the default value on creation for the update_time field.
+	artwork.DefaultUpdateTime = artworkDescUpdateTime.Default.(func() time.Time)
+	// artwork.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	artwork.UpdateDefaultUpdateTime = artworkDescUpdateTime.UpdateDefault.(func() time.Time)
+	// artworkDescIsAi is the schema descriptor for is_ai field.
+	artworkDescIsAi := artworkFields[2].Descriptor()
+	// artwork.DefaultIsAi holds the default value on creation for the is_ai field.
+	artwork.DefaultIsAi = artworkDescIsAi.Default.(bool)
+	comfyuinodeMixin := schema.ComfyUINode{}.Mixin()
+	comfyuinodeMixinFields0 := comfyuinodeMixin[0].Fields()
+	_ = comfyuinodeMixinFields0
+	comfyuinodeFields := schema.ComfyUINode{}.Fields()
+	_ = comfyuinodeFields
+	// comfyuinodeDescCreateTime is the schema descriptor for create_time field.
+	comfyuinodeDescCreateTime := comfyuinodeMixinFields0[0].Descriptor()
+	// comfyuinode.DefaultCreateTime holds the default value on creation for the create_time field.
+	comfyuinode.DefaultCreateTime = comfyuinodeDescCreateTime.Default.(func() time.Time)
+	// comfyuinodeDescUpdateTime is the schema descriptor for update_time field.
+	comfyuinodeDescUpdateTime := comfyuinodeMixinFields0[1].Descriptor()
+	// comfyuinode.DefaultUpdateTime holds the default value on creation for the update_time field.
+	comfyuinode.DefaultUpdateTime = comfyuinodeDescUpdateTime.Default.(func() time.Time)
+	// comfyuinode.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	comfyuinode.UpdateDefaultUpdateTime = comfyuinodeDescUpdateTime.UpdateDefault.(func() time.Time)
+	// comfyuinodeDescEnabled is the schema descriptor for enabled field.
+	comfyuinodeDescEnabled := comfyuinodeFields[2].Descriptor()
+	// comfyuinode.DefaultEnabled holds the default value on creation for the enabled field.
+	comfyuinode.DefaultEnabled = comfyuinodeDescEnabled.Default.(bool)
+	commentMixin := schema.Comment{}.Mixin()
+	commentMixinHooks1 := commentMixin[1].Hooks()
+	comment.Hooks[0] = commentMixinHooks1[0]
+	commentMixinInters1 := commentMixin[1].Interceptors()
+	comment.Interceptors[0] = commentMixinInters1[0]
+	commentMixinFields0 := commentMixin[0].Fields()
+	_ = commentMixinFields0
+	commentFields := schema.Comment{}.Fields()
+	_ = commentFields
+	// commentDescCreateTime is the schema descriptor for create_time field.
+	commentDescCreateTime := commentMixinFields0[0].Descriptor()
+	// comment.DefaultCreateTime holds the default value on creation for the create_time field.
+	comment.DefaultCreateTime = commentDescCreateTime.Default.(func() time.Time)
+	// commentDescUpdateTime is the schema descriptor for update_time field.
+	commentDescUpdateTime := commentMixinFields0[1].Descriptor()
+	// comment.DefaultUpdateTime holds the default value on creation for the update_time field.
+	comment.DefaultUpdateTime = commentDescUpdateTime.Default.(func() time.Time)
+	// comment.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	comment.UpdateDefaultUpdateTime = commentDescUpdateTime.UpdateDefault.(func() time.Time)
+	// commentDescContent is the schema descriptor for content field.
+	commentDescContent := commentFields[1].Descriptor()
+	// comment.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	comment.ContentValidator = commentDescContent.Validators[0].(func(string) error)
+	// commentDescDepth is the schema descriptor for depth field.
+	commentDescDepth := commentFields[2].Descriptor()
+	// comment.DefaultDepth holds the default value on creation for the depth field.
+	comment.DefaultDepth = commentDescDepth.Default.(int)
+	// comment.DepthValidator is a validator for the "depth" field. It is called by the builders before save.
+	comment.DepthValidator = commentDescDepth.Validators[0].(func(int) error)
+	mediaMixin := schema.Media{}.Mixin()
+	mediaMixinFields0 := mediaMixin[0].Fields()
+	_ = mediaMixinFields0
+	mediaFields := schema.Media{}.Fields()
+	_ = mediaFields
+	// mediaDescCreateTime is the schema descriptor for create_time field.
+	mediaDescCreateTime := mediaMixinFields0[0].Descriptor()
+	// media.DefaultCreateTime holds the default value on creation for the create_time field.
+	media.DefaultCreateTime = mediaDescCreateTime.Default.(func() time.Time)
+	// mediaDescUpdateTime is the schema descriptor for update_time field.
+	mediaDescUpdateTime := mediaMixinFields0[1].Descriptor()
+	// media.DefaultUpdateTime holds the default value on creation for the update_time field.
+	media.DefaultUpdateTime = mediaDescUpdateTime.Default.(func() time.Time)
+	// media.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	media.UpdateDefaultUpdateTime = mediaDescUpdateTime.UpdateDefault.(func() time.Time)
+	tagMixin := schema.Tag{}.Mixin()
+	tagMixinFields0 := tagMixin[0].Fields()
+	_ = tagMixinFields0
+	tagFields := schema.Tag{}.Fields()
+	_ = tagFields
+	// tagDescCreateTime is the schema descriptor for create_time field.
+	tagDescCreateTime := tagMixinFields0[0].Descriptor()
+	// tag.DefaultCreateTime holds the default value on creation for the create_time field.
+	tag.DefaultCreateTime = tagDescCreateTime.Default.(func() time.Time)
+	// tagDescUpdateTime is the schema descriptor for update_time field.
+	tagDescUpdateTime := tagMixinFields0[1].Descriptor()
+	// tag.DefaultUpdateTime holds the default value on creation for the update_time field.
+	tag.DefaultUpdateTime = tagDescUpdateTime.Default.(func() time.Time)
+	// tag.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	tag.UpdateDefaultUpdateTime = tagDescUpdateTime.UpdateDefault.(func() time.Time)
+	userMixin := schema.User{}.Mixin()
+	userMixinFields0 := userMixin[0].Fields()
+	_ = userMixinFields0
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescCreateTime is the schema descriptor for create_time field.
+	userDescCreateTime := userMixinFields0[0].Descriptor()
+	// user.DefaultCreateTime holds the default value on creation for the create_time field.
+	user.DefaultCreateTime = userDescCreateTime.Default.(func() time.Time)
+	// userDescUpdateTime is the schema descriptor for update_time field.
+	userDescUpdateTime := userMixinFields0[1].Descriptor()
+	// user.DefaultUpdateTime holds the default value on creation for the update_time field.
+	user.DefaultUpdateTime = userDescUpdateTime.Default.(func() time.Time)
+	// user.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	user.UpdateDefaultUpdateTime = userDescUpdateTime.UpdateDefault.(func() time.Time)
+	// userDescIsFavoritesPublic is the schema descriptor for is_favorites_public field.
+	userDescIsFavoritesPublic := userFields[8].Descriptor()
+	// user.DefaultIsFavoritesPublic holds the default value on creation for the is_favorites_public field.
+	user.DefaultIsFavoritesPublic = userDescIsFavoritesPublic.Default.(bool)
+	// userDescIsLikesPublic is the schema descriptor for is_likes_public field.
+	userDescIsLikesPublic := userFields[9].Descriptor()
+	// user.DefaultIsLikesPublic holds the default value on creation for the is_likes_public field.
+	user.DefaultIsLikesPublic = userDescIsLikesPublic.Default.(bool)
+	workflowMixin := schema.Workflow{}.Mixin()
+	workflowMixinHooks1 := workflowMixin[1].Hooks()
+	workflow.Hooks[0] = workflowMixinHooks1[0]
+	workflowMixinInters1 := workflowMixin[1].Interceptors()
+	workflow.Interceptors[0] = workflowMixinInters1[0]
+	workflowMixinFields0 := workflowMixin[0].Fields()
+	_ = workflowMixinFields0
+	workflowFields := schema.Workflow{}.Fields()
+	_ = workflowFields
+	// workflowDescCreateTime is the schema descriptor for create_time field.
+	workflowDescCreateTime := workflowMixinFields0[0].Descriptor()
+	// workflow.DefaultCreateTime holds the default value on creation for the create_time field.
+	workflow.DefaultCreateTime = workflowDescCreateTime.Default.(func() time.Time)
+	// workflowDescUpdateTime is the schema descriptor for update_time field.
+	workflowDescUpdateTime := workflowMixinFields0[1].Descriptor()
+	// workflow.DefaultUpdateTime holds the default value on creation for the update_time field.
+	workflow.DefaultUpdateTime = workflowDescUpdateTime.Default.(func() time.Time)
+	// workflow.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	workflow.UpdateDefaultUpdateTime = workflowDescUpdateTime.UpdateDefault.(func() time.Time)
+	// workflowDescEnabled is the schema descriptor for enabled field.
+	workflowDescEnabled := workflowFields[3].Descriptor()
+	// workflow.DefaultEnabled holds the default value on creation for the enabled field.
+	workflow.DefaultEnabled = workflowDescEnabled.Default.(bool)
+}
 
 const (
 	Version = "v0.14.1"                                         // Version of ent codegen.

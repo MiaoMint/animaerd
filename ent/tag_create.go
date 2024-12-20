@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +19,34 @@ type TagCreate struct {
 	config
 	mutation *TagMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (tc *TagCreate) SetCreateTime(t time.Time) *TagCreate {
+	tc.mutation.SetCreateTime(t)
+	return tc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (tc *TagCreate) SetNillableCreateTime(t *time.Time) *TagCreate {
+	if t != nil {
+		tc.SetCreateTime(*t)
+	}
+	return tc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (tc *TagCreate) SetUpdateTime(t time.Time) *TagCreate {
+	tc.mutation.SetUpdateTime(t)
+	return tc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (tc *TagCreate) SetNillableUpdateTime(t *time.Time) *TagCreate {
+	if t != nil {
+		tc.SetUpdateTime(*t)
+	}
+	return tc
 }
 
 // SetName sets the "name" field.
@@ -54,6 +83,7 @@ func (tc *TagCreate) Mutation() *TagMutation {
 
 // Save creates the Tag in the database.
 func (tc *TagCreate) Save(ctx context.Context) (*Tag, error) {
+	tc.defaults()
 	return withHooks(ctx, tc.sqlSave, tc.mutation, tc.hooks)
 }
 
@@ -79,8 +109,26 @@ func (tc *TagCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tc *TagCreate) defaults() {
+	if _, ok := tc.mutation.CreateTime(); !ok {
+		v := tag.DefaultCreateTime()
+		tc.mutation.SetCreateTime(v)
+	}
+	if _, ok := tc.mutation.UpdateTime(); !ok {
+		v := tag.DefaultUpdateTime()
+		tc.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (tc *TagCreate) check() error {
+	if _, ok := tc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Tag.create_time"`)}
+	}
+	if _, ok := tc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Tag.update_time"`)}
+	}
 	if _, ok := tc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Tag.name"`)}
 	}
@@ -118,6 +166,14 @@ func (tc *TagCreate) createSpec() (*Tag, *sqlgraph.CreateSpec) {
 		_node = &Tag{config: tc.config}
 		_spec = sqlgraph.NewCreateSpec(tag.Table, sqlgraph.NewFieldSpec(tag.FieldID, field.TypeInt))
 	)
+	if value, ok := tc.mutation.CreateTime(); ok {
+		_spec.SetField(tag.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := tc.mutation.UpdateTime(); ok {
+		_spec.SetField(tag.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := tc.mutation.Name(); ok {
 		_spec.SetField(tag.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -163,6 +219,7 @@ func (tcb *TagCreateBulk) Save(ctx context.Context) ([]*Tag, error) {
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TagMutation)
 				if !ok {

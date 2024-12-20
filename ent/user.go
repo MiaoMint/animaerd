@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -41,6 +42,8 @@ type User struct {
 	IsFavoritesPublic bool `json:"is_favorites_public,omitempty"`
 	// IsLikesPublic holds the value of the "is_likes_public" field.
 	IsLikesPublic bool `json:"is_likes_public,omitempty"`
+	// RecentTags holds the value of the "recent_tags" field.
+	RecentTags []string `json:"recent_tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -53,15 +56,17 @@ type UserEdges struct {
 	Artworks []*Artwork `json:"artworks,omitempty"`
 	// LikedArtworks holds the value of the liked_artworks edge.
 	LikedArtworks []*Artwork `json:"liked_artworks,omitempty"`
-	// Favorites holds the value of the favorites edge.
-	Favorites []*Artwork `json:"favorites,omitempty"`
 	// Followers holds the value of the followers edge.
 	Followers []*User `json:"followers,omitempty"`
 	// Following holds the value of the following edge.
 	Following []*User `json:"following,omitempty"`
+	// Comments holds the value of the comments edge.
+	Comments []*Comment `json:"comments,omitempty"`
+	// LikedComments holds the value of the liked_comments edge.
+	LikedComments []*Comment `json:"liked_comments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // ArtworksOrErr returns the Artworks value or an error if the edge
@@ -82,19 +87,10 @@ func (e UserEdges) LikedArtworksOrErr() ([]*Artwork, error) {
 	return nil, &NotLoadedError{edge: "liked_artworks"}
 }
 
-// FavoritesOrErr returns the Favorites value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) FavoritesOrErr() ([]*Artwork, error) {
-	if e.loadedTypes[2] {
-		return e.Favorites, nil
-	}
-	return nil, &NotLoadedError{edge: "favorites"}
-}
-
 // FollowersOrErr returns the Followers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowersOrErr() ([]*User, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[2] {
 		return e.Followers, nil
 	}
 	return nil, &NotLoadedError{edge: "followers"}
@@ -103,10 +99,28 @@ func (e UserEdges) FollowersOrErr() ([]*User, error) {
 // FollowingOrErr returns the Following value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FollowingOrErr() ([]*User, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[3] {
 		return e.Following, nil
 	}
 	return nil, &NotLoadedError{edge: "following"}
+}
+
+// CommentsOrErr returns the Comments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) CommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[4] {
+		return e.Comments, nil
+	}
+	return nil, &NotLoadedError{edge: "comments"}
+}
+
+// LikedCommentsOrErr returns the LikedComments value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) LikedCommentsOrErr() ([]*Comment, error) {
+	if e.loadedTypes[5] {
+		return e.LikedComments, nil
+	}
+	return nil, &NotLoadedError{edge: "liked_comments"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -114,6 +128,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldRecentTags:
+			values[i] = new([]byte)
 		case user.FieldIsFavoritesPublic, user.FieldIsLikesPublic:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
@@ -215,6 +231,14 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.IsLikesPublic = value.Bool
 			}
+		case user.FieldRecentTags:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field recent_tags", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &u.RecentTags); err != nil {
+					return fmt.Errorf("unmarshal field recent_tags: %w", err)
+				}
+			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -238,11 +262,6 @@ func (u *User) QueryLikedArtworks() *ArtworkQuery {
 	return NewUserClient(u.config).QueryLikedArtworks(u)
 }
 
-// QueryFavorites queries the "favorites" edge of the User entity.
-func (u *User) QueryFavorites() *ArtworkQuery {
-	return NewUserClient(u.config).QueryFavorites(u)
-}
-
 // QueryFollowers queries the "followers" edge of the User entity.
 func (u *User) QueryFollowers() *UserQuery {
 	return NewUserClient(u.config).QueryFollowers(u)
@@ -251,6 +270,16 @@ func (u *User) QueryFollowers() *UserQuery {
 // QueryFollowing queries the "following" edge of the User entity.
 func (u *User) QueryFollowing() *UserQuery {
 	return NewUserClient(u.config).QueryFollowing(u)
+}
+
+// QueryComments queries the "comments" edge of the User entity.
+func (u *User) QueryComments() *CommentQuery {
+	return NewUserClient(u.config).QueryComments(u)
+}
+
+// QueryLikedComments queries the "liked_comments" edge of the User entity.
+func (u *User) QueryLikedComments() *CommentQuery {
+	return NewUserClient(u.config).QueryLikedComments(u)
 }
 
 // Update returns a builder for updating this User.
@@ -311,6 +340,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_likes_public=")
 	builder.WriteString(fmt.Sprintf("%v", u.IsLikesPublic))
+	builder.WriteString(", ")
+	builder.WriteString("recent_tags=")
+	builder.WriteString(fmt.Sprintf("%v", u.RecentTags))
 	builder.WriteByte(')')
 	return builder.String()
 }

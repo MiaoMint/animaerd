@@ -159,7 +159,7 @@ export function Background() {
 
   const fetchArtworks = async () => {
     try {
-      const response = await artworkApi.getArtworks(1, 30);
+      const response = await artworkApi.getArtworks({ page: 1, pageSize: 30 });
       if (response.data === null) {
         return;
       }

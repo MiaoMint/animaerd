@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
@@ -47,6 +48,20 @@ func (ac *ArtworkCreate) SetUpdateTime(t time.Time) *ArtworkCreate {
 func (ac *ArtworkCreate) SetNillableUpdateTime(t *time.Time) *ArtworkCreate {
 	if t != nil {
 		ac.SetUpdateTime(*t)
+	}
+	return ac
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (ac *ArtworkCreate) SetDeletedAt(t time.Time) *ArtworkCreate {
+	ac.mutation.SetDeletedAt(t)
+	return ac
+}
+
+// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
+func (ac *ArtworkCreate) SetNillableDeletedAt(t *time.Time) *ArtworkCreate {
+	if t != nil {
+		ac.SetDeletedAt(*t)
 	}
 	return ac
 }
@@ -114,14 +129,6 @@ func (ac *ArtworkCreate) SetOwnerID(id int) *ArtworkCreate {
 	return ac
 }
 
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (ac *ArtworkCreate) SetNillableOwnerID(id *int) *ArtworkCreate {
-	if id != nil {
-		ac = ac.SetOwnerID(*id)
-	}
-	return ac
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (ac *ArtworkCreate) SetOwner(u *User) *ArtworkCreate {
 	return ac.SetOwnerID(u.ID)
@@ -142,38 +149,49 @@ func (ac *ArtworkCreate) AddLikes(u ...*User) *ArtworkCreate {
 	return ac.AddLikeIDs(ids...)
 }
 
-// AddFavoriteIDs adds the "favorites" edge to the User entity by IDs.
-func (ac *ArtworkCreate) AddFavoriteIDs(ids ...int) *ArtworkCreate {
-	ac.mutation.AddFavoriteIDs(ids...)
-	return ac
-}
-
-// AddFavorites adds the "favorites" edges to the User entity.
-func (ac *ArtworkCreate) AddFavorites(u ...*User) *ArtworkCreate {
-	ids := make([]int, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
-	}
-	return ac.AddFavoriteIDs(ids...)
-}
-
 // SetMediaID sets the "media" edge to the Media entity by ID.
 func (ac *ArtworkCreate) SetMediaID(id int) *ArtworkCreate {
 	ac.mutation.SetMediaID(id)
 	return ac
 }
 
-// SetNillableMediaID sets the "media" edge to the Media entity by ID if the given value is not nil.
-func (ac *ArtworkCreate) SetNillableMediaID(id *int) *ArtworkCreate {
+// SetMedia sets the "media" edge to the Media entity.
+func (ac *ArtworkCreate) SetMedia(m *Media) *ArtworkCreate {
+	return ac.SetMediaID(m.ID)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (ac *ArtworkCreate) AddCommentIDs(ids ...int) *ArtworkCreate {
+	ac.mutation.AddCommentIDs(ids...)
+	return ac
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (ac *ArtworkCreate) AddComments(c ...*Comment) *ArtworkCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return ac.AddCommentIDs(ids...)
+}
+
+// SetCommentGenerateID sets the "comment_generate" edge to the Comment entity by ID.
+func (ac *ArtworkCreate) SetCommentGenerateID(id int) *ArtworkCreate {
+	ac.mutation.SetCommentGenerateID(id)
+	return ac
+}
+
+// SetNillableCommentGenerateID sets the "comment_generate" edge to the Comment entity by ID if the given value is not nil.
+func (ac *ArtworkCreate) SetNillableCommentGenerateID(id *int) *ArtworkCreate {
 	if id != nil {
-		ac = ac.SetMediaID(*id)
+		ac = ac.SetCommentGenerateID(*id)
 	}
 	return ac
 }
 
-// SetMedia sets the "media" edge to the Media entity.
-func (ac *ArtworkCreate) SetMedia(m *Media) *ArtworkCreate {
-	return ac.SetMediaID(m.ID)
+// SetCommentGenerate sets the "comment_generate" edge to the Comment entity.
+func (ac *ArtworkCreate) SetCommentGenerate(c *Comment) *ArtworkCreate {
+	return ac.SetCommentGenerateID(c.ID)
 }
 
 // Mutation returns the ArtworkMutation object of the builder.
@@ -183,7 +201,9 @@ func (ac *ArtworkCreate) Mutation() *ArtworkMutation {
 
 // Save creates the Artwork in the database.
 func (ac *ArtworkCreate) Save(ctx context.Context) (*Artwork, error) {
-	ac.defaults()
+	if err := ac.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, ac.sqlSave, ac.mutation, ac.hooks)
 }
 
@@ -210,12 +230,18 @@ func (ac *ArtworkCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (ac *ArtworkCreate) defaults() {
+func (ac *ArtworkCreate) defaults() error {
 	if _, ok := ac.mutation.CreateTime(); !ok {
+		if artwork.DefaultCreateTime == nil {
+			return fmt.Errorf("ent: uninitialized artwork.DefaultCreateTime (forgotten import ent/runtime?)")
+		}
 		v := artwork.DefaultCreateTime()
 		ac.mutation.SetCreateTime(v)
 	}
 	if _, ok := ac.mutation.UpdateTime(); !ok {
+		if artwork.DefaultUpdateTime == nil {
+			return fmt.Errorf("ent: uninitialized artwork.DefaultUpdateTime (forgotten import ent/runtime?)")
+		}
 		v := artwork.DefaultUpdateTime()
 		ac.mutation.SetUpdateTime(v)
 	}
@@ -223,6 +249,7 @@ func (ac *ArtworkCreate) defaults() {
 		v := artwork.DefaultIsAi
 		ac.mutation.SetIsAi(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -235,6 +262,12 @@ func (ac *ArtworkCreate) check() error {
 	}
 	if _, ok := ac.mutation.IsAi(); !ok {
 		return &ValidationError{Name: "is_ai", err: errors.New(`ent: missing required field "Artwork.is_ai"`)}
+	}
+	if len(ac.mutation.OwnerIDs()) == 0 {
+		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Artwork.owner"`)}
+	}
+	if len(ac.mutation.MediaIDs()) == 0 {
+		return &ValidationError{Name: "media", err: errors.New(`ent: missing required edge "Artwork.media"`)}
 	}
 	return nil
 }
@@ -269,6 +302,10 @@ func (ac *ArtworkCreate) createSpec() (*Artwork, *sqlgraph.CreateSpec) {
 	if value, ok := ac.mutation.UpdateTime(); ok {
 		_spec.SetField(artwork.FieldUpdateTime, field.TypeTime, value)
 		_node.UpdateTime = value
+	}
+	if value, ok := ac.mutation.DeletedAt(); ok {
+		_spec.SetField(artwork.FieldDeletedAt, field.TypeTime, value)
+		_node.DeletedAt = value
 	}
 	if value, ok := ac.mutation.Title(); ok {
 		_spec.SetField(artwork.FieldTitle, field.TypeString, value)
@@ -331,22 +368,6 @@ func (ac *ArtworkCreate) createSpec() (*Artwork, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := ac.mutation.FavoritesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   artwork.FavoritesTable,
-			Columns: artwork.FavoritesPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
 	if nodes := ac.mutation.MediaIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -362,6 +383,39 @@ func (ac *ArtworkCreate) createSpec() (*Artwork, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.media_artworks = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   artwork.CommentsTable,
+			Columns: artwork.CommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CommentGenerateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   artwork.CommentGenerateTable,
+			Columns: []string{artwork.CommentGenerateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.comment_generated_artwork = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -5,6 +5,7 @@ import (
 
 	"github.com/MiaoMint/animaerd/config"
 	"github.com/MiaoMint/animaerd/ent"
+	_ "github.com/MiaoMint/animaerd/ent/runtime"
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/MiaoMint/animaerd/router"
 	"github.com/gofiber/fiber/v2"

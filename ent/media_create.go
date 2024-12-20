@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -18,6 +19,34 @@ type MediaCreate struct {
 	config
 	mutation *MediaMutation
 	hooks    []Hook
+}
+
+// SetCreateTime sets the "create_time" field.
+func (mc *MediaCreate) SetCreateTime(t time.Time) *MediaCreate {
+	mc.mutation.SetCreateTime(t)
+	return mc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (mc *MediaCreate) SetNillableCreateTime(t *time.Time) *MediaCreate {
+	if t != nil {
+		mc.SetCreateTime(*t)
+	}
+	return mc
+}
+
+// SetUpdateTime sets the "update_time" field.
+func (mc *MediaCreate) SetUpdateTime(t time.Time) *MediaCreate {
+	mc.mutation.SetUpdateTime(t)
+	return mc
+}
+
+// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
+func (mc *MediaCreate) SetNillableUpdateTime(t *time.Time) *MediaCreate {
+	if t != nil {
+		mc.SetUpdateTime(*t)
+	}
+	return mc
 }
 
 // SetURL sets the "url" field.
@@ -84,6 +113,7 @@ func (mc *MediaCreate) Mutation() *MediaMutation {
 
 // Save creates the Media in the database.
 func (mc *MediaCreate) Save(ctx context.Context) (*Media, error) {
+	mc.defaults()
 	return withHooks(ctx, mc.sqlSave, mc.mutation, mc.hooks)
 }
 
@@ -109,8 +139,26 @@ func (mc *MediaCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (mc *MediaCreate) defaults() {
+	if _, ok := mc.mutation.CreateTime(); !ok {
+		v := media.DefaultCreateTime()
+		mc.mutation.SetCreateTime(v)
+	}
+	if _, ok := mc.mutation.UpdateTime(); !ok {
+		v := media.DefaultUpdateTime()
+		mc.mutation.SetUpdateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (mc *MediaCreate) check() error {
+	if _, ok := mc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "Media.create_time"`)}
+	}
+	if _, ok := mc.mutation.UpdateTime(); !ok {
+		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "Media.update_time"`)}
+	}
 	if _, ok := mc.mutation.URL(); !ok {
 		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "Media.url"`)}
 	}
@@ -158,6 +206,14 @@ func (mc *MediaCreate) createSpec() (*Media, *sqlgraph.CreateSpec) {
 		_node = &Media{config: mc.config}
 		_spec = sqlgraph.NewCreateSpec(media.Table, sqlgraph.NewFieldSpec(media.FieldID, field.TypeInt))
 	)
+	if value, ok := mc.mutation.CreateTime(); ok {
+		_spec.SetField(media.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
+	if value, ok := mc.mutation.UpdateTime(); ok {
+		_spec.SetField(media.FieldUpdateTime, field.TypeTime, value)
+		_node.UpdateTime = value
+	}
 	if value, ok := mc.mutation.URL(); ok {
 		_spec.SetField(media.FieldURL, field.TypeString, value)
 		_node.URL = value
@@ -223,6 +279,7 @@ func (mcb *MediaCreateBulk) Save(ctx context.Context) ([]*Media, error) {
 	for i := range mcb.builders {
 		func(i int, root context.Context) {
 			builder := mcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*MediaMutation)
 				if !ok {

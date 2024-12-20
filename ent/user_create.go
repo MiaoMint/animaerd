@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/user"
 )
 
@@ -173,6 +174,12 @@ func (uc *UserCreate) SetNillableIsLikesPublic(b *bool) *UserCreate {
 	return uc
 }
 
+// SetRecentTags sets the "recent_tags" field.
+func (uc *UserCreate) SetRecentTags(s []string) *UserCreate {
+	uc.mutation.SetRecentTags(s)
+	return uc
+}
+
 // AddArtworkIDs adds the "artworks" edge to the Artwork entity by IDs.
 func (uc *UserCreate) AddArtworkIDs(ids ...int) *UserCreate {
 	uc.mutation.AddArtworkIDs(ids...)
@@ -203,21 +210,6 @@ func (uc *UserCreate) AddLikedArtworks(a ...*Artwork) *UserCreate {
 	return uc.AddLikedArtworkIDs(ids...)
 }
 
-// AddFavoriteIDs adds the "favorites" edge to the Artwork entity by IDs.
-func (uc *UserCreate) AddFavoriteIDs(ids ...int) *UserCreate {
-	uc.mutation.AddFavoriteIDs(ids...)
-	return uc
-}
-
-// AddFavorites adds the "favorites" edges to the Artwork entity.
-func (uc *UserCreate) AddFavorites(a ...*Artwork) *UserCreate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
-	}
-	return uc.AddFavoriteIDs(ids...)
-}
-
 // AddFollowerIDs adds the "followers" edge to the User entity by IDs.
 func (uc *UserCreate) AddFollowerIDs(ids ...int) *UserCreate {
 	uc.mutation.AddFollowerIDs(ids...)
@@ -246,6 +238,36 @@ func (uc *UserCreate) AddFollowing(u ...*User) *UserCreate {
 		ids[i] = u[i].ID
 	}
 	return uc.AddFollowingIDs(ids...)
+}
+
+// AddCommentIDs adds the "comments" edge to the Comment entity by IDs.
+func (uc *UserCreate) AddCommentIDs(ids ...int) *UserCreate {
+	uc.mutation.AddCommentIDs(ids...)
+	return uc
+}
+
+// AddComments adds the "comments" edges to the Comment entity.
+func (uc *UserCreate) AddComments(c ...*Comment) *UserCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddCommentIDs(ids...)
+}
+
+// AddLikedCommentIDs adds the "liked_comments" edge to the Comment entity by IDs.
+func (uc *UserCreate) AddLikedCommentIDs(ids ...int) *UserCreate {
+	uc.mutation.AddLikedCommentIDs(ids...)
+	return uc
+}
+
+// AddLikedComments adds the "liked_comments" edges to the Comment entity.
+func (uc *UserCreate) AddLikedComments(c ...*Comment) *UserCreate {
+	ids := make([]int, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return uc.AddLikedCommentIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -424,6 +446,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldIsLikesPublic, field.TypeBool, value)
 		_node.IsLikesPublic = value
 	}
+	if value, ok := uc.mutation.RecentTags(); ok {
+		_spec.SetField(user.FieldRecentTags, field.TypeJSON, value)
+		_node.RecentTags = value
+	}
 	if nodes := uc.mutation.ArtworksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -446,22 +472,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Inverse: false,
 			Table:   user.LikedArtworksTable,
 			Columns: user.LikedArtworksPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := uc.mutation.FavoritesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   user.FavoritesTable,
-			Columns: user.FavoritesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(artwork.FieldID, field.TypeInt),
@@ -497,6 +507,38 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.CommentsTable,
+			Columns: []string{user.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.LikedCommentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.LikedCommentsTable,
+			Columns: user.LikedCommentsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

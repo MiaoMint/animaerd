@@ -19,6 +19,7 @@ type ArtworkResponse struct {
 	Tags          []string     `json:"tags"`
 	User          UserResponse `json:"user"`
 	Likes         int          `json:"likes"`
+	IsLiked       bool         `json:"is_liked"`
 	CreatedTime   string       `json:"created_time"`
 }
 
