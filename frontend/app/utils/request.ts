@@ -4,7 +4,7 @@ import { toast } from "@/hooks/use-toast";
 
 // Create base instance
 const request = ofetch.create({
-  baseURL: "http://127.0.0.1:8000/", // Your base API URL
+  baseURL: process.env.API_BASE_URL, // Your base API URL
   // Add auth token to requests
   async onRequest({ request, options }) {
     const token = tokenStorage.get();
