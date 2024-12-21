@@ -2,9 +2,9 @@
 
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
-import { ChevronDown, User } from "lucide-react";
+import { ChevronDown, User, Menu } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
@@ -24,31 +24,45 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 export default function NavBar({ className }: { className?: string }) {
   const router = useRouter();
   const { user } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <nav
       className={clsx([
-        "flex justify-between items-center py-4 px-8 gap-3",
+        "flex justify-between items-center py-4 px-4 md:px-8 gap-2 md:gap-3",
         className,
       ])}
     >
-      <h1 className="text-2xl font-bold mr-4">Animaerd</h1>
-      <div className="flex gap-2">
+      <h1 className="text-xl md:text-2xl font-bold">
+        Animaerd
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <Menu />
+        </Button>
+      </h1>
+
+      <div className="hidden md:flex gap-2">
         <NavButton path="/">Home</NavButton>
         <NavButton path="/create">Create</NavButton>
       </div>
-      <div className="w-full">
+
+      <div className="w-full hidden md:block">
         <SearchBox />
       </div>
-      <div className="flex gap-1 flex-1 justify-end">
+
+      <div className="flex gap-1 items-center">
         {user ? (
           <Button
             variant="ghost"
-            className="relative size-10 rounded-full"
+            className="relative size-8 md:size-10 rounded-full"
             size="icon"
             onClick={() => router.push(`/profile/${user.username ?? user.id}`)}
           >
-            <Avatar className="size-10">
+            <Avatar className="size-8 md:size-10">
               <AvatarImage src={user.avatar} alt={user.display_name} />
               <AvatarFallback>{user.display_name?.[0]}</AvatarFallback>
             </Avatar>
@@ -65,6 +79,14 @@ export default function NavBar({ className }: { className?: string }) {
         )}
         <MoreButton />
       </div>
+
+      {isMenuOpen && (
+        <div className="absolute top-16 left-0 right-0 bg-background border-b md:hidden p-4 flex flex-col gap-2 z-50">
+          <NavButton path="/">Home</NavButton>
+          <NavButton path="/create">Create</NavButton>
+          <SearchBox />
+        </div>
+      )}
     </nav>
   );
 }

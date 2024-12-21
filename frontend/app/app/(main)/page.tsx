@@ -80,7 +80,7 @@ export default function HomePage() {
   }, [setScrollOffset]);
 
   return (
-    <div className="p-4">
+    <div className="px-4">
       <MasonryInfiniteGrid
         className="w-full"
         align={"center"}
