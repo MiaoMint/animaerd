@@ -75,7 +75,7 @@ export function ArtworkGrid({ username, isLiked }: ArtworkGridProps) {
         ))}
       </MasonryInfiniteGrid>
 
-      <div ref={ref}>
+      <div className="h-12" ref={ref}>
         {loading && (
           <div className="flex justify-center py-4">
             <Loader className="animate-spin" />
