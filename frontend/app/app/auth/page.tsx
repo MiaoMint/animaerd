@@ -1,9 +1,11 @@
 /* eslint-disable jsx-a11y/alt-text */
 "use client";
 import { artworkApi } from "@/api/artwork";
+import { ArtworkGrid } from "@/components/artwork-grid";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "motion/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function AuthPage() {
@@ -183,15 +185,63 @@ function Background() {
     <div className="absolute top-0 -z-10 w-full h-screen bg-background overflow-hidden">
       <div className="absolute w-full flex flex-col animate-scroll">
         <div className="px-4 gap-4 columns-[18rem]">
-          {artworks.map((artwork) => (
-            <img
-              key={artwork.id}
-              className="w-full object-cover rounded-lg mb-4"
-              src={artwork.url}
-            />
+          {artworks.map((artwork, index) => (
+            <BackgroundTile key={artwork.id} artwork={artwork} />
           ))}
         </div>
       </div>
     </div>
+  );
+}
+
+function BackgroundTile({ artwork }: { artwork: ArtworkResponse }) {
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    function getTileHeight(artworkHight: number) {
+      const width = window.innerWidth;
+      let w = 0;
+      if (width > 1536) {
+        w = artwork.width - width / 6;
+      } else if (width > 1280) {
+        w = artwork.width - width / 5;
+      } else if (width > 1024) {
+        w = artwork.width - width / 4;
+      } else if (width > 768) {
+        w = artwork.width - width / 3;
+      } else {
+        w = artwork.width - width / 2;
+      }
+      let h = artworkHight - w;
+      if (h < 200) {
+        h = 200;
+      }
+
+      if (h > 600) {
+        h = 600;
+      }
+
+      return h;
+    }
+    setHeight(getTileHeight(artwork.height));
+    // 监听屏幕resize事件
+    const handleResize = () => {
+      setHeight(getTileHeight(artwork.height));
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [artwork, height]);
+
+  return (
+    <Image
+      className="w-full object-cover rounded-lg mb-4"
+      style={{ height: height }}
+      src={artwork.url}
+      alt={artwork.title}
+      loading="lazy"
+      width={600}
+      height={400}
+      quality={70}
+    />
   );
 }
