@@ -80,7 +80,7 @@ export default function HomePage() {
   }, [setScrollOffset]);
 
   return (
-    <div className="px-4">
+    <div className="px-2 md:px-4">
       <MasonryInfiniteGrid
         className="w-full"
         align={"center"}
@@ -93,7 +93,7 @@ export default function HomePage() {
         ))}
       </MasonryInfiniteGrid>
 
-      <div ref={ref}>
+      <div className="h-12" ref={ref}>
         {loading && (
           <div className="flex justify-center py-4">
             <Loader className="animate-spin" />
