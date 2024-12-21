@@ -18,6 +18,7 @@ import { motion } from "motion/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Comments } from "@/components/comments";
+import ArtworkLoading from "./_components/artwok-loading";
 
 export default function ArtworkPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -165,10 +166,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
 
   if (loading) {
     return (
-      <div className="h-80 justify-center items-center flex">
-        {/* 旋转的图标 */}
-        <Loader className="animate-spin" />
-      </div>
+       <ArtworkLoading />
     );
   }
 
