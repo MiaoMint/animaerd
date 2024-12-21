@@ -32,11 +32,12 @@ func GetArtworkList(c *fiber.Ctx) error {
 		WithTags()
 
 	if username != "" {
-		query = query.Where(artwork.HasOwnerWith(
-			user.UsernameEQ(username),
-		))
 		if isLiked == "true" {
 			query = query.Where(artwork.HasLikesWith(
+				user.UsernameEQ(username),
+			))
+		} else {
+			query = query.Where(artwork.HasOwnerWith(
 				user.UsernameEQ(username),
 			))
 		}
