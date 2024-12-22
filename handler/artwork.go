@@ -27,7 +27,7 @@ func GetArtworkList(c *fiber.Ctx) error {
 	query := entClient.Artwork.Query().
 		Offset(offset).
 		Limit(pageSize).
-		Order(ent.Desc("create_time")).
+		Order(ent.Desc(artwork.FieldCreateTime)).
 		WithMedia().
 		WithTags()
 

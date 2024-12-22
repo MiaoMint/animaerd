@@ -24,7 +24,7 @@ func GetArtworkComments(c *fiber.Ctx) error {
 			aq.WithMedia()
 		}).
 		WithAuthor().
-		Order(ent.Desc("create_time")).
+		Order(ent.Desc(comment.FieldCreateTime)).
 		Limit(10).
 		All(c.Context())
 
@@ -106,7 +106,7 @@ func GetArtworkCommentsByChild(c *fiber.Ctx) error {
 		WithGeneratedArtwork(func(aq *ent.ArtworkQuery) {
 			aq.WithMedia()
 		}).
-		Order(ent.Desc("create_time")).
+		Order(ent.Desc(comment.FieldCreateTime)).
 		Limit(10).
 		All(c.Context())
 

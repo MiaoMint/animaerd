@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Bot, Command, Gauge, Settings2, SquareTerminal } from "lucide-react";
+import {
+  Home,
+  MessageCircle,
+  Settings2,
+  Sparkles,
+  Tags,
+  UsersRound,
+  Workflow,
+} from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -17,36 +25,42 @@ import {
 } from "@/components/ui/sidebar";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Home",
       url: "/",
-      icon: SquareTerminal,
+      icon: Home,
       isActive: true,
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
+      title: "Users",
+      url: "/comfyui-nodes",
+      icon: UsersRound,
+    },
+    {
+      title: "Comments",
+      url: "/comments",
+      icon: MessageCircle,
+    },
+    {
+      title: "Workflows",
+      url: "/workflows",
+      icon: Workflow,
+    },
+    {
+      title: "Tags",
+      url: "/tags",
+      icon: Tags,
+    },
+    {
+      title: "Aspect Ratio",
+      url: "/aspect-ratio",
+      icon: Workflow,
+    },
+    {
+      title: "Styles",
+      url: "/styles",
+      icon: Sparkles,
     },
     {
       title: "Settings",
@@ -54,19 +68,11 @@ const data = {
       icon: Settings2,
       items: [
         {
+          title: "ComfyUI Nodes",
+          url: "/comfyui-nodes",
+        },
+        {
           title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
           url: "#",
         },
       ],
@@ -112,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

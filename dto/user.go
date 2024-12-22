@@ -6,6 +6,7 @@ type UserResponse struct {
 	DisplayName       string `json:"display_name"`
 	Avatar            string `json:"avatar"`
 	Bio               string `json:"bio"`
+	IsAdmin           bool   `json:"is_admin,omitempty"`
 	IsFavoritesPublic bool   `json:"is_favorites_public"`
 	IsLikesPublic     bool   `json:"is_likes_public"`
 }

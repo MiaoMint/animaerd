@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/MiaoMint/animaerd/ent/predicate"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/workflow"
 )
 
@@ -22,6 +23,8 @@ type WorkflowQuery struct {
 	order      []workflow.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Workflow
+	withStyle  *StyleQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (wq *WorkflowQuery) Unique(unique bool) *WorkflowQuery {
 func (wq *WorkflowQuery) Order(o ...workflow.OrderOption) *WorkflowQuery {
 	wq.order = append(wq.order, o...)
 	return wq
+}
+
+// QueryStyle chains the current query on the "style" edge.
+func (wq *WorkflowQuery) QueryStyle() *StyleQuery {
+	query := (&StyleClient{config: wq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := wq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := wq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workflow.Table, workflow.FieldID, selector),
+			sqlgraph.To(style.Table, style.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, workflow.StyleTable, workflow.StyleColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(wq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Workflow entity from the query.
@@ -250,10 +275,22 @@ func (wq *WorkflowQuery) Clone() *WorkflowQuery {
 		order:      append([]workflow.OrderOption{}, wq.order...),
 		inters:     append([]Interceptor{}, wq.inters...),
 		predicates: append([]predicate.Workflow{}, wq.predicates...),
+		withStyle:  wq.withStyle.Clone(),
 		// clone intermediate query.
 		sql:  wq.sql.Clone(),
 		path: wq.path,
 	}
+}
+
+// WithStyle tells the query-builder to eager-load the nodes that are connected to
+// the "style" edge. The optional arguments are used to configure the query builder of the edge.
+func (wq *WorkflowQuery) WithStyle(opts ...func(*StyleQuery)) *WorkflowQuery {
+	query := (&StyleClient{config: wq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	wq.withStyle = query
+	return wq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -332,15 +369,26 @@ func (wq *WorkflowQuery) prepareQuery(ctx context.Context) error {
 
 func (wq *WorkflowQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Workflow, error) {
 	var (
-		nodes = []*Workflow{}
-		_spec = wq.querySpec()
+		nodes       = []*Workflow{}
+		withFKs     = wq.withFKs
+		_spec       = wq.querySpec()
+		loadedTypes = [1]bool{
+			wq.withStyle != nil,
+		}
 	)
+	if wq.withStyle != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, workflow.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Workflow).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Workflow{config: wq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +400,46 @@ func (wq *WorkflowQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wor
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := wq.withStyle; query != nil {
+		if err := wq.loadStyle(ctx, query, nodes, nil,
+			func(n *Workflow, e *Style) { n.Edges.Style = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (wq *WorkflowQuery) loadStyle(ctx context.Context, query *StyleQuery, nodes []*Workflow, init func(*Workflow), assign func(*Workflow, *Style)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Workflow)
+	for i := range nodes {
+		if nodes[i].style_workflows == nil {
+			continue
+		}
+		fk := *nodes[i].style_workflows
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(style.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "style_workflows" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (wq *WorkflowQuery) sqlCount(ctx context.Context) (int, error) {

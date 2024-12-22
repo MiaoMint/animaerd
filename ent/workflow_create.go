@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/workflow"
 )
 
@@ -80,6 +81,12 @@ func (wc *WorkflowCreate) SetJSON(s string) *WorkflowCreate {
 	return wc
 }
 
+// SetImageResultNode sets the "image_result_node" field.
+func (wc *WorkflowCreate) SetImageResultNode(s string) *WorkflowCreate {
+	wc.mutation.SetImageResultNode(s)
+	return wc
+}
+
 // SetEnabled sets the "enabled" field.
 func (wc *WorkflowCreate) SetEnabled(b bool) *WorkflowCreate {
 	wc.mutation.SetEnabled(b)
@@ -92,6 +99,25 @@ func (wc *WorkflowCreate) SetNillableEnabled(b *bool) *WorkflowCreate {
 		wc.SetEnabled(*b)
 	}
 	return wc
+}
+
+// SetStyleID sets the "style" edge to the Style entity by ID.
+func (wc *WorkflowCreate) SetStyleID(id int) *WorkflowCreate {
+	wc.mutation.SetStyleID(id)
+	return wc
+}
+
+// SetNillableStyleID sets the "style" edge to the Style entity by ID if the given value is not nil.
+func (wc *WorkflowCreate) SetNillableStyleID(id *int) *WorkflowCreate {
+	if id != nil {
+		wc = wc.SetStyleID(*id)
+	}
+	return wc
+}
+
+// SetStyle sets the "style" edge to the Style entity.
+func (wc *WorkflowCreate) SetStyle(s *Style) *WorkflowCreate {
+	return wc.SetStyleID(s.ID)
 }
 
 // Mutation returns the WorkflowMutation object of the builder.
@@ -174,6 +200,9 @@ func (wc *WorkflowCreate) check() error {
 	if _, ok := wc.mutation.JSON(); !ok {
 		return &ValidationError{Name: "json", err: errors.New(`ent: missing required field "Workflow.json"`)}
 	}
+	if _, ok := wc.mutation.ImageResultNode(); !ok {
+		return &ValidationError{Name: "image_result_node", err: errors.New(`ent: missing required field "Workflow.image_result_node"`)}
+	}
 	if _, ok := wc.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`ent: missing required field "Workflow.enabled"`)}
 	}
@@ -227,9 +256,30 @@ func (wc *WorkflowCreate) createSpec() (*Workflow, *sqlgraph.CreateSpec) {
 		_spec.SetField(workflow.FieldJSON, field.TypeString, value)
 		_node.JSON = value
 	}
+	if value, ok := wc.mutation.ImageResultNode(); ok {
+		_spec.SetField(workflow.FieldImageResultNode, field.TypeString, value)
+		_node.ImageResultNode = value
+	}
 	if value, ok := wc.mutation.Enabled(); ok {
 		_spec.SetField(workflow.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if nodes := wc.mutation.StyleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   workflow.StyleTable,
+			Columns: []string{workflow.StyleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(style.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.style_workflows = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

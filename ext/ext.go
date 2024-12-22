@@ -48,6 +48,10 @@ func EntClient() *ent.Client {
 	return client
 }
 
+func initBaseDatabase() {
+
+}
+
 func RedisStore() *redis.Storage {
 	if redisStore != nil {
 		return redisStore

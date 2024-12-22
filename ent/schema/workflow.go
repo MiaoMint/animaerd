@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/mixin"
 	"github.com/MiaoMint/animaerd/ent/schema/schematype"
@@ -19,6 +20,7 @@ func (Workflow) Fields() []ent.Field {
 		field.Enum("type").
 			Values("image_to_image", "text_to_image", "comment_to_image"),
 		field.String("json"),
+		field.String("image_result_node"),
 		field.Bool("enabled").
 			Default(true),
 	}
@@ -26,7 +28,12 @@ func (Workflow) Fields() []ent.Field {
 
 // Edges of the Workflow.
 func (Workflow) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		// 绑定的 style
+		edge.From("style", Style.Type).
+			Ref("workflows").
+			Unique(),
+	}
 }
 
 func (Workflow) Mixin() []ent.Mixin {

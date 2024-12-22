@@ -18,6 +18,30 @@ import (
 	"github.com/google/uuid"
 )
 
+func GetUserList(c *fiber.Ctx) error {
+	entClient := ext.EntClient()
+	users, err := entClient.User.Query().All(c.Context())
+	if err != nil {
+		return err
+	}
+
+	var userResponses []dto.UserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, dto.UserResponse{
+			ID:                user.ID,
+			Username:          user.Username,
+			DisplayName:       user.DisplayName,
+			Avatar:            user.Avatar,
+			Bio:               user.Bio,
+			IsAdmin:           user.Role == "admin",
+			IsFavoritesPublic: user.IsFavoritesPublic,
+			IsLikesPublic:     user.IsLikesPublic,
+		})
+	}
+
+	return c.JSON(result.NewSuccessResult(userResponses))
+}
+
 func GetUser(c *fiber.Ctx) error {
 	userId := c.Locals("userId").(float64)
 	entClient := ext.EntClient()
@@ -33,6 +57,7 @@ func GetUser(c *fiber.Ctx) error {
 		DisplayName:       user.DisplayName,
 		Avatar:            user.Avatar,
 		Bio:               user.Bio,
+		IsAdmin:           user.Role == "admin",
 		IsFavoritesPublic: user.IsFavoritesPublic,
 		IsLikesPublic:     user.IsLikesPublic,
 	}))

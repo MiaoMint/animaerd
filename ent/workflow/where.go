@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/MiaoMint/animaerd/ent/predicate"
 )
 
@@ -77,6 +78,11 @@ func Name(v string) predicate.Workflow {
 // JSON applies equality check predicate on the "json" field. It's identical to JSONEQ.
 func JSON(v string) predicate.Workflow {
 	return predicate.Workflow(sql.FieldEQ(FieldJSON, v))
+}
+
+// ImageResultNode applies equality check predicate on the "image_result_node" field. It's identical to ImageResultNodeEQ.
+func ImageResultNode(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldEQ(FieldImageResultNode, v))
 }
 
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
@@ -364,6 +370,71 @@ func JSONContainsFold(v string) predicate.Workflow {
 	return predicate.Workflow(sql.FieldContainsFold(FieldJSON, v))
 }
 
+// ImageResultNodeEQ applies the EQ predicate on the "image_result_node" field.
+func ImageResultNodeEQ(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldEQ(FieldImageResultNode, v))
+}
+
+// ImageResultNodeNEQ applies the NEQ predicate on the "image_result_node" field.
+func ImageResultNodeNEQ(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldNEQ(FieldImageResultNode, v))
+}
+
+// ImageResultNodeIn applies the In predicate on the "image_result_node" field.
+func ImageResultNodeIn(vs ...string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldIn(FieldImageResultNode, vs...))
+}
+
+// ImageResultNodeNotIn applies the NotIn predicate on the "image_result_node" field.
+func ImageResultNodeNotIn(vs ...string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldNotIn(FieldImageResultNode, vs...))
+}
+
+// ImageResultNodeGT applies the GT predicate on the "image_result_node" field.
+func ImageResultNodeGT(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldGT(FieldImageResultNode, v))
+}
+
+// ImageResultNodeGTE applies the GTE predicate on the "image_result_node" field.
+func ImageResultNodeGTE(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldGTE(FieldImageResultNode, v))
+}
+
+// ImageResultNodeLT applies the LT predicate on the "image_result_node" field.
+func ImageResultNodeLT(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldLT(FieldImageResultNode, v))
+}
+
+// ImageResultNodeLTE applies the LTE predicate on the "image_result_node" field.
+func ImageResultNodeLTE(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldLTE(FieldImageResultNode, v))
+}
+
+// ImageResultNodeContains applies the Contains predicate on the "image_result_node" field.
+func ImageResultNodeContains(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldContains(FieldImageResultNode, v))
+}
+
+// ImageResultNodeHasPrefix applies the HasPrefix predicate on the "image_result_node" field.
+func ImageResultNodeHasPrefix(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldHasPrefix(FieldImageResultNode, v))
+}
+
+// ImageResultNodeHasSuffix applies the HasSuffix predicate on the "image_result_node" field.
+func ImageResultNodeHasSuffix(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldHasSuffix(FieldImageResultNode, v))
+}
+
+// ImageResultNodeEqualFold applies the EqualFold predicate on the "image_result_node" field.
+func ImageResultNodeEqualFold(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldEqualFold(FieldImageResultNode, v))
+}
+
+// ImageResultNodeContainsFold applies the ContainsFold predicate on the "image_result_node" field.
+func ImageResultNodeContainsFold(v string) predicate.Workflow {
+	return predicate.Workflow(sql.FieldContainsFold(FieldImageResultNode, v))
+}
+
 // EnabledEQ applies the EQ predicate on the "enabled" field.
 func EnabledEQ(v bool) predicate.Workflow {
 	return predicate.Workflow(sql.FieldEQ(FieldEnabled, v))
@@ -372,6 +443,29 @@ func EnabledEQ(v bool) predicate.Workflow {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.Workflow {
 	return predicate.Workflow(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// HasStyle applies the HasEdge predicate on the "style" edge.
+func HasStyle() predicate.Workflow {
+	return predicate.Workflow(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, StyleTable, StyleColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStyleWith applies the HasEdge predicate on the "style" edge with a given conditions (other predicates).
+func HasStyleWith(preds ...predicate.Style) predicate.Workflow {
+	return predicate.Workflow(func(s *sql.Selector) {
+		step := newStyleStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

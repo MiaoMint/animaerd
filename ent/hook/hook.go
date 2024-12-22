@@ -21,6 +21,30 @@ func (f ArtworkFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ArtworkMutation", m)
 }
 
+// The AspectRatioFunc type is an adapter to allow the use of ordinary
+// function as AspectRatio mutator.
+type AspectRatioFunc func(context.Context, *ent.AspectRatioMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AspectRatioFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AspectRatioMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AspectRatioMutation", m)
+}
+
+// The BaseConfigFunc type is an adapter to allow the use of ordinary
+// function as BaseConfig mutator.
+type BaseConfigFunc func(context.Context, *ent.BaseConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BaseConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BaseConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BaseConfigMutation", m)
+}
+
 // The ComfyUINodeFunc type is an adapter to allow the use of ordinary
 // function as ComfyUINode mutator.
 type ComfyUINodeFunc func(context.Context, *ent.ComfyUINodeMutation) (ent.Value, error)
@@ -55,6 +79,18 @@ func (f MediaFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MediaMutation", m)
+}
+
+// The StyleFunc type is an adapter to allow the use of ordinary
+// function as Style mutator.
+type StyleFunc func(context.Context, *ent.StyleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f StyleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.StyleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.StyleMutation", m)
 }
 
 // The TagFunc type is an adapter to allow the use of ordinary

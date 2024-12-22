@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/baseconfig"
 	"github.com/MiaoMint/animaerd/ent/comfyuinode"
 	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ent/schema"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
 	"github.com/MiaoMint/animaerd/ent/workflow"
@@ -42,6 +44,21 @@ func init() {
 	artworkDescIsAi := artworkFields[2].Descriptor()
 	// artwork.DefaultIsAi holds the default value on creation for the is_ai field.
 	artwork.DefaultIsAi = artworkDescIsAi.Default.(bool)
+	baseconfigMixin := schema.BaseConfig{}.Mixin()
+	baseconfigMixinFields0 := baseconfigMixin[0].Fields()
+	_ = baseconfigMixinFields0
+	baseconfigFields := schema.BaseConfig{}.Fields()
+	_ = baseconfigFields
+	// baseconfigDescCreateTime is the schema descriptor for create_time field.
+	baseconfigDescCreateTime := baseconfigMixinFields0[0].Descriptor()
+	// baseconfig.DefaultCreateTime holds the default value on creation for the create_time field.
+	baseconfig.DefaultCreateTime = baseconfigDescCreateTime.Default.(func() time.Time)
+	// baseconfigDescUpdateTime is the schema descriptor for update_time field.
+	baseconfigDescUpdateTime := baseconfigMixinFields0[1].Descriptor()
+	// baseconfig.DefaultUpdateTime holds the default value on creation for the update_time field.
+	baseconfig.DefaultUpdateTime = baseconfigDescUpdateTime.Default.(func() time.Time)
+	// baseconfig.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	baseconfig.UpdateDefaultUpdateTime = baseconfigDescUpdateTime.UpdateDefault.(func() time.Time)
 	comfyuinodeMixin := schema.ComfyUINode{}.Mixin()
 	comfyuinodeMixinFields0 := comfyuinodeMixin[0].Fields()
 	_ = comfyuinodeMixinFields0
@@ -105,6 +122,25 @@ func init() {
 	media.DefaultUpdateTime = mediaDescUpdateTime.Default.(func() time.Time)
 	// media.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	media.UpdateDefaultUpdateTime = mediaDescUpdateTime.UpdateDefault.(func() time.Time)
+	styleMixin := schema.Style{}.Mixin()
+	styleMixinHooks1 := styleMixin[1].Hooks()
+	style.Hooks[0] = styleMixinHooks1[0]
+	styleMixinInters1 := styleMixin[1].Interceptors()
+	style.Interceptors[0] = styleMixinInters1[0]
+	styleMixinFields0 := styleMixin[0].Fields()
+	_ = styleMixinFields0
+	styleFields := schema.Style{}.Fields()
+	_ = styleFields
+	// styleDescCreateTime is the schema descriptor for create_time field.
+	styleDescCreateTime := styleMixinFields0[0].Descriptor()
+	// style.DefaultCreateTime holds the default value on creation for the create_time field.
+	style.DefaultCreateTime = styleDescCreateTime.Default.(func() time.Time)
+	// styleDescUpdateTime is the schema descriptor for update_time field.
+	styleDescUpdateTime := styleMixinFields0[1].Descriptor()
+	// style.DefaultUpdateTime holds the default value on creation for the update_time field.
+	style.DefaultUpdateTime = styleDescUpdateTime.Default.(func() time.Time)
+	// style.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	style.UpdateDefaultUpdateTime = styleDescUpdateTime.UpdateDefault.(func() time.Time)
 	tagMixin := schema.Tag{}.Mixin()
 	tagMixinFields0 := tagMixin[0].Fields()
 	_ = tagMixinFields0
@@ -163,7 +199,7 @@ func init() {
 	// workflow.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	workflow.UpdateDefaultUpdateTime = workflowDescUpdateTime.UpdateDefault.(func() time.Time)
 	// workflowDescEnabled is the schema descriptor for enabled field.
-	workflowDescEnabled := workflowFields[3].Descriptor()
+	workflowDescEnabled := workflowFields[4].Descriptor()
 	// workflow.DefaultEnabled holds the default value on creation for the enabled field.
 	workflow.DefaultEnabled = workflowDescEnabled.Default.(bool)
 }

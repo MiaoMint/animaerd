@@ -20,6 +20,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { tokenStorage } from "@/utils/token";
 
 export default function NavBar({ className }: { className?: string }) {
   const router = useRouter();
@@ -153,6 +154,14 @@ function MoreButton() {
   const { setTheme } = useTheme();
   const { user, logout } = useAuth();
   const router = useRouter();
+
+  const handleToAdminDashboard = () => {
+    const token = tokenStorage.get();
+    if (token) {
+      window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/admin?token=${token}`;
+    }
+  };
+
   if (user) {
     return (
       <DropdownMenu>
@@ -172,6 +181,11 @@ function MoreButton() {
           <DropdownMenuItem onClick={() => router.push("/settings/profile")}>
             Settings
           </DropdownMenuItem>
+          {user.is_admin && (
+            <DropdownMenuItem onClick={handleToAdminDashboard}>
+              Dashboard
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
             <DropdownMenuPortal>

@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/workflow"
 )
 
@@ -29,9 +30,35 @@ type Workflow struct {
 	Type workflow.Type `json:"type,omitempty"`
 	// JSON holds the value of the "json" field.
 	JSON string `json:"json,omitempty"`
+	// ImageResultNode holds the value of the "image_result_node" field.
+	ImageResultNode string `json:"image_result_node,omitempty"`
 	// Enabled holds the value of the "enabled" field.
-	Enabled      bool `json:"enabled,omitempty"`
-	selectValues sql.SelectValues
+	Enabled bool `json:"enabled,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the WorkflowQuery when eager-loading is set.
+	Edges           WorkflowEdges `json:"edges"`
+	style_workflows *int
+	selectValues    sql.SelectValues
+}
+
+// WorkflowEdges holds the relations/edges for other nodes in the graph.
+type WorkflowEdges struct {
+	// Style holds the value of the style edge.
+	Style *Style `json:"style,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// StyleOrErr returns the Style value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e WorkflowEdges) StyleOrErr() (*Style, error) {
+	if e.Style != nil {
+		return e.Style, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: style.Label}
+	}
+	return nil, &NotLoadedError{edge: "style"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,10 +70,12 @@ func (*Workflow) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case workflow.FieldID:
 			values[i] = new(sql.NullInt64)
-		case workflow.FieldName, workflow.FieldType, workflow.FieldJSON:
+		case workflow.FieldName, workflow.FieldType, workflow.FieldJSON, workflow.FieldImageResultNode:
 			values[i] = new(sql.NullString)
 		case workflow.FieldCreateTime, workflow.FieldUpdateTime, workflow.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
+		case workflow.ForeignKeys[0]: // style_workflows
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -104,11 +133,24 @@ func (w *Workflow) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				w.JSON = value.String
 			}
+		case workflow.FieldImageResultNode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field image_result_node", values[i])
+			} else if value.Valid {
+				w.ImageResultNode = value.String
+			}
 		case workflow.FieldEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field enabled", values[i])
 			} else if value.Valid {
 				w.Enabled = value.Bool
+			}
+		case workflow.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field style_workflows", value)
+			} else if value.Valid {
+				w.style_workflows = new(int)
+				*w.style_workflows = int(value.Int64)
 			}
 		default:
 			w.selectValues.Set(columns[i], values[i])
@@ -121,6 +163,11 @@ func (w *Workflow) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (w *Workflow) Value(name string) (ent.Value, error) {
 	return w.selectValues.Get(name)
+}
+
+// QueryStyle queries the "style" edge of the Workflow entity.
+func (w *Workflow) QueryStyle() *StyleQuery {
+	return NewWorkflowClient(w.config).QueryStyle(w)
 }
 
 // Update returns a builder for updating this Workflow.
@@ -163,6 +210,9 @@ func (w *Workflow) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("json=")
 	builder.WriteString(w.JSON)
+	builder.WriteString(", ")
+	builder.WriteString("image_result_node=")
+	builder.WriteString(w.ImageResultNode)
 	builder.WriteString(", ")
 	builder.WriteString("enabled=")
 	builder.WriteString(fmt.Sprintf("%v", w.Enabled))

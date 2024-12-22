@@ -27,7 +27,7 @@ export default function AuthCallback({
 
   return (
     <div className="bg-background text-foreground min-h-screen flex flex-col items-center justify-center">
-      <div className="space-y-8 text-center">
+      <div className="space-y-8">
         <div className="relative">
           <div className="h-16 w-16 rounded-full border-4 border-primary/30 animate-[spin_3s_linear_infinite]" />
           <div className="absolute top-0 h-16 w-16 rounded-full border-4 border-primary border-t-transparent animate-[spin_1.5s_linear_infinite]" />

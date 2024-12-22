@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/MiaoMint/animaerd/config"
 	"github.com/MiaoMint/animaerd/ent/user"
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
@@ -144,4 +145,25 @@ func getUserLoginResp(c *fiber.Ctx, provider user.Provider, providerAccountId st
 	}
 
 	return c.JSON(result.NewSuccessResult(token))
+}
+
+func LoginToDashboard(c *fiber.Ctx) error {
+	tokenStr := c.Query("token")
+	if tokenStr == "" {
+		return c.JSON(result.NewErrorResult("Unauthorized", 401))
+	}
+
+	claims, err := token.ParseJwtToken(tokenStr)
+	if err != nil {
+		return c.JSON(result.NewErrorResult("token invalid", 401))
+	}
+
+	isAdmin := claims["role"] == "admin"
+
+	if !isAdmin {
+		return c.JSON(result.NewErrorResult("permission denied", 403))
+	}
+
+	// 跳转到 dashboard
+	return c.Redirect(fmt.Sprintf("%s/login?token=%s", config.C.DashboardURL, tokenStr))
 }

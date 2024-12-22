@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/MiaoMint/animaerd/ent/predicate"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/workflow"
 )
 
@@ -96,6 +97,20 @@ func (wu *WorkflowUpdate) SetNillableJSON(s *string) *WorkflowUpdate {
 	return wu
 }
 
+// SetImageResultNode sets the "image_result_node" field.
+func (wu *WorkflowUpdate) SetImageResultNode(s string) *WorkflowUpdate {
+	wu.mutation.SetImageResultNode(s)
+	return wu
+}
+
+// SetNillableImageResultNode sets the "image_result_node" field if the given value is not nil.
+func (wu *WorkflowUpdate) SetNillableImageResultNode(s *string) *WorkflowUpdate {
+	if s != nil {
+		wu.SetImageResultNode(*s)
+	}
+	return wu
+}
+
 // SetEnabled sets the "enabled" field.
 func (wu *WorkflowUpdate) SetEnabled(b bool) *WorkflowUpdate {
 	wu.mutation.SetEnabled(b)
@@ -110,9 +125,34 @@ func (wu *WorkflowUpdate) SetNillableEnabled(b *bool) *WorkflowUpdate {
 	return wu
 }
 
+// SetStyleID sets the "style" edge to the Style entity by ID.
+func (wu *WorkflowUpdate) SetStyleID(id int) *WorkflowUpdate {
+	wu.mutation.SetStyleID(id)
+	return wu
+}
+
+// SetNillableStyleID sets the "style" edge to the Style entity by ID if the given value is not nil.
+func (wu *WorkflowUpdate) SetNillableStyleID(id *int) *WorkflowUpdate {
+	if id != nil {
+		wu = wu.SetStyleID(*id)
+	}
+	return wu
+}
+
+// SetStyle sets the "style" edge to the Style entity.
+func (wu *WorkflowUpdate) SetStyle(s *Style) *WorkflowUpdate {
+	return wu.SetStyleID(s.ID)
+}
+
 // Mutation returns the WorkflowMutation object of the builder.
 func (wu *WorkflowUpdate) Mutation() *WorkflowMutation {
 	return wu.mutation
+}
+
+// ClearStyle clears the "style" edge to the Style entity.
+func (wu *WorkflowUpdate) ClearStyle() *WorkflowUpdate {
+	wu.mutation.ClearStyle()
+	return wu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -197,8 +237,40 @@ func (wu *WorkflowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := wu.mutation.JSON(); ok {
 		_spec.SetField(workflow.FieldJSON, field.TypeString, value)
 	}
+	if value, ok := wu.mutation.ImageResultNode(); ok {
+		_spec.SetField(workflow.FieldImageResultNode, field.TypeString, value)
+	}
 	if value, ok := wu.mutation.Enabled(); ok {
 		_spec.SetField(workflow.FieldEnabled, field.TypeBool, value)
+	}
+	if wu.mutation.StyleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   workflow.StyleTable,
+			Columns: []string{workflow.StyleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(style.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wu.mutation.StyleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   workflow.StyleTable,
+			Columns: []string{workflow.StyleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(style.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, wu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -288,6 +360,20 @@ func (wuo *WorkflowUpdateOne) SetNillableJSON(s *string) *WorkflowUpdateOne {
 	return wuo
 }
 
+// SetImageResultNode sets the "image_result_node" field.
+func (wuo *WorkflowUpdateOne) SetImageResultNode(s string) *WorkflowUpdateOne {
+	wuo.mutation.SetImageResultNode(s)
+	return wuo
+}
+
+// SetNillableImageResultNode sets the "image_result_node" field if the given value is not nil.
+func (wuo *WorkflowUpdateOne) SetNillableImageResultNode(s *string) *WorkflowUpdateOne {
+	if s != nil {
+		wuo.SetImageResultNode(*s)
+	}
+	return wuo
+}
+
 // SetEnabled sets the "enabled" field.
 func (wuo *WorkflowUpdateOne) SetEnabled(b bool) *WorkflowUpdateOne {
 	wuo.mutation.SetEnabled(b)
@@ -302,9 +388,34 @@ func (wuo *WorkflowUpdateOne) SetNillableEnabled(b *bool) *WorkflowUpdateOne {
 	return wuo
 }
 
+// SetStyleID sets the "style" edge to the Style entity by ID.
+func (wuo *WorkflowUpdateOne) SetStyleID(id int) *WorkflowUpdateOne {
+	wuo.mutation.SetStyleID(id)
+	return wuo
+}
+
+// SetNillableStyleID sets the "style" edge to the Style entity by ID if the given value is not nil.
+func (wuo *WorkflowUpdateOne) SetNillableStyleID(id *int) *WorkflowUpdateOne {
+	if id != nil {
+		wuo = wuo.SetStyleID(*id)
+	}
+	return wuo
+}
+
+// SetStyle sets the "style" edge to the Style entity.
+func (wuo *WorkflowUpdateOne) SetStyle(s *Style) *WorkflowUpdateOne {
+	return wuo.SetStyleID(s.ID)
+}
+
 // Mutation returns the WorkflowMutation object of the builder.
 func (wuo *WorkflowUpdateOne) Mutation() *WorkflowMutation {
 	return wuo.mutation
+}
+
+// ClearStyle clears the "style" edge to the Style entity.
+func (wuo *WorkflowUpdateOne) ClearStyle() *WorkflowUpdateOne {
+	wuo.mutation.ClearStyle()
+	return wuo
 }
 
 // Where appends a list predicates to the WorkflowUpdate builder.
@@ -419,8 +530,40 @@ func (wuo *WorkflowUpdateOne) sqlSave(ctx context.Context) (_node *Workflow, err
 	if value, ok := wuo.mutation.JSON(); ok {
 		_spec.SetField(workflow.FieldJSON, field.TypeString, value)
 	}
+	if value, ok := wuo.mutation.ImageResultNode(); ok {
+		_spec.SetField(workflow.FieldImageResultNode, field.TypeString, value)
+	}
 	if value, ok := wuo.mutation.Enabled(); ok {
 		_spec.SetField(workflow.FieldEnabled, field.TypeBool, value)
+	}
+	if wuo.mutation.StyleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   workflow.StyleTable,
+			Columns: []string{workflow.StyleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(style.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wuo.mutation.StyleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   workflow.StyleTable,
+			Columns: []string{workflow.StyleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(style.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Workflow{config: wuo.config}
 	_spec.Assign = _node.assignValues

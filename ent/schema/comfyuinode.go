@@ -16,7 +16,8 @@ func (ComfyUINode) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
 		field.String("endpoint"),
-		field.Bool("enabled").Default(true),
+		field.Bool("enabled").
+			Default(true),
 	}
 }
 

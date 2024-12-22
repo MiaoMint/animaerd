@@ -59,6 +59,33 @@ var (
 			},
 		},
 	}
+	// AspectRatiosColumns holds the columns for the "aspect_ratios" table.
+	AspectRatiosColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ratio", Type: field.TypeString},
+		{Name: "width", Type: field.TypeInt},
+		{Name: "height", Type: field.TypeInt},
+	}
+	// AspectRatiosTable holds the schema information for the "aspect_ratios" table.
+	AspectRatiosTable = &schema.Table{
+		Name:       "aspect_ratios",
+		Columns:    AspectRatiosColumns,
+		PrimaryKey: []*schema.Column{AspectRatiosColumns[0]},
+	}
+	// BaseConfigsColumns holds the columns for the "base_configs" table.
+	BaseConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeString, Size: 2147483647},
+	}
+	// BaseConfigsTable holds the schema information for the "base_configs" table.
+	BaseConfigsTable = &schema.Table{
+		Name:       "base_configs",
+		Columns:    BaseConfigsColumns,
+		PrimaryKey: []*schema.Column{BaseConfigsColumns[0]},
+	}
 	// ComfyUINodesColumns holds the columns for the "comfy_ui_nodes" table.
 	ComfyUINodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -143,6 +170,21 @@ var (
 			},
 		},
 	}
+	// StylesColumns holds the columns for the "styles" table.
+	StylesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "icon", Type: field.TypeString},
+	}
+	// StylesTable holds the schema information for the "styles" table.
+	StylesTable = &schema.Table{
+		Name:       "styles",
+		Columns:    StylesColumns,
+		PrimaryKey: []*schema.Column{StylesColumns[0]},
+	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -208,13 +250,23 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"image_to_image", "text_to_image", "comment_to_image"}},
 		{Name: "json", Type: field.TypeString},
+		{Name: "image_result_node", Type: field.TypeString},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "style_workflows", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// WorkflowsTable holds the schema information for the "workflows" table.
 	WorkflowsTable = &schema.Table{
 		Name:       "workflows",
 		Columns:    WorkflowsColumns,
 		PrimaryKey: []*schema.Column{WorkflowsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "workflows_styles_workflows",
+				Columns:    []*schema.Column{WorkflowsColumns[9]},
+				RefColumns: []*schema.Column{StylesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// ArtworkCommentsColumns holds the columns for the "artwork_comments" table.
 	ArtworkCommentsColumns = []*schema.Column{
@@ -344,9 +396,12 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ArtworksTable,
+		AspectRatiosTable,
+		BaseConfigsTable,
 		ComfyUINodesTable,
 		CommentsTable,
 		MediaTable,
+		StylesTable,
 		TagsTable,
 		UsersTable,
 		WorkflowsTable,
@@ -364,6 +419,7 @@ func init() {
 	ArtworksTable.ForeignKeys[2].RefTable = UsersTable
 	CommentsTable.ForeignKeys[0].RefTable = CommentsTable
 	CommentsTable.ForeignKeys[1].RefTable = UsersTable
+	WorkflowsTable.ForeignKeys[0].RefTable = StylesTable
 	ArtworkCommentsTable.ForeignKeys[0].RefTable = ArtworksTable
 	ArtworkCommentsTable.ForeignKeys[1].RefTable = CommentsTable
 	CommentLikesTable.ForeignKeys[0].RefTable = CommentsTable

@@ -19,34 +19,35 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Comments } from "@/components/comments";
 import ArtworkLoading from "./_components/artwok-loading";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ArtworkPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [artwork, setArtwork] = useState<ArtworkResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
-  const [bgColor, setBgColor] = useState("");
   const [isPanelVisible, setIsPanelVisible] = useState(true);
+  const [bgColor, setBgColor] = useState("");
+
+  const {
+    data: artwork,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["artwork", params.id],
+    queryFn: async () => {
+      const response = await artworkApi.getArtworkById(Number(params.id));
+      return response.data;
+    },
+  });
 
   useEffect(() => {
-    const fetchArtwork = async () => {
-      try {
-        const response = await artworkApi.getArtworkById(Number(params.id));
-        setArtwork(response.data);
-        setBgColor(response.data.primary_color);
-      } catch (error) {
-        console.error("Failed to fetch artwork:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchArtwork();
-  }, [params.id]);
+    if (artwork?.primary_color) {
+      setBgColor(artwork.primary_color);
+    }
+  }, [artwork?.primary_color]);
 
   useEffect(() => {
     const checkImageHeight = () => {
@@ -95,16 +96,8 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
         await artworkApi.likeArtwork(Number(params.id));
       }
 
-      setArtwork((prev) =>
-        prev
-          ? {
-              ...prev,
-              likes: prev.likes + (isLiked ? -1 : 1),
-            }
-          : null
-      );
       setIsLiked(!isLiked);
-
+      refetch()
       toast({
         title: isLiked ? "Removed from favorites" : "Added to favorites",
       });
@@ -164,10 +157,8 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
     }
   };
 
-  if (loading) {
-    return (
-       <ArtworkLoading />
-    );
+  if (isLoading) {
+    return <ArtworkLoading />;
   }
 
   if (!artwork) {

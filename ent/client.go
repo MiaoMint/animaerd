@@ -16,9 +16,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/aspectratio"
+	"github.com/MiaoMint/animaerd/ent/baseconfig"
 	"github.com/MiaoMint/animaerd/ent/comfyuinode"
 	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
 	"github.com/MiaoMint/animaerd/ent/workflow"
@@ -31,12 +34,18 @@ type Client struct {
 	Schema *migrate.Schema
 	// Artwork is the client for interacting with the Artwork builders.
 	Artwork *ArtworkClient
+	// AspectRatio is the client for interacting with the AspectRatio builders.
+	AspectRatio *AspectRatioClient
+	// BaseConfig is the client for interacting with the BaseConfig builders.
+	BaseConfig *BaseConfigClient
 	// ComfyUINode is the client for interacting with the ComfyUINode builders.
 	ComfyUINode *ComfyUINodeClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
 	// Media is the client for interacting with the Media builders.
 	Media *MediaClient
+	// Style is the client for interacting with the Style builders.
+	Style *StyleClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// User is the client for interacting with the User builders.
@@ -55,9 +64,12 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Artwork = NewArtworkClient(c.config)
+	c.AspectRatio = NewAspectRatioClient(c.config)
+	c.BaseConfig = NewBaseConfigClient(c.config)
 	c.ComfyUINode = NewComfyUINodeClient(c.config)
 	c.Comment = NewCommentClient(c.config)
 	c.Media = NewMediaClient(c.config)
+	c.Style = NewStyleClient(c.config)
 	c.Tag = NewTagClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.Workflow = NewWorkflowClient(c.config)
@@ -154,9 +166,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:         ctx,
 		config:      cfg,
 		Artwork:     NewArtworkClient(cfg),
+		AspectRatio: NewAspectRatioClient(cfg),
+		BaseConfig:  NewBaseConfigClient(cfg),
 		ComfyUINode: NewComfyUINodeClient(cfg),
 		Comment:     NewCommentClient(cfg),
 		Media:       NewMediaClient(cfg),
+		Style:       NewStyleClient(cfg),
 		Tag:         NewTagClient(cfg),
 		User:        NewUserClient(cfg),
 		Workflow:    NewWorkflowClient(cfg),
@@ -180,9 +195,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:         ctx,
 		config:      cfg,
 		Artwork:     NewArtworkClient(cfg),
+		AspectRatio: NewAspectRatioClient(cfg),
+		BaseConfig:  NewBaseConfigClient(cfg),
 		ComfyUINode: NewComfyUINodeClient(cfg),
 		Comment:     NewCommentClient(cfg),
 		Media:       NewMediaClient(cfg),
+		Style:       NewStyleClient(cfg),
 		Tag:         NewTagClient(cfg),
 		User:        NewUserClient(cfg),
 		Workflow:    NewWorkflowClient(cfg),
@@ -215,7 +233,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Artwork, c.ComfyUINode, c.Comment, c.Media, c.Tag, c.User, c.Workflow,
+		c.Artwork, c.AspectRatio, c.BaseConfig, c.ComfyUINode, c.Comment, c.Media,
+		c.Style, c.Tag, c.User, c.Workflow,
 	} {
 		n.Use(hooks...)
 	}
@@ -225,7 +244,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Artwork, c.ComfyUINode, c.Comment, c.Media, c.Tag, c.User, c.Workflow,
+		c.Artwork, c.AspectRatio, c.BaseConfig, c.ComfyUINode, c.Comment, c.Media,
+		c.Style, c.Tag, c.User, c.Workflow,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -236,12 +256,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *ArtworkMutation:
 		return c.Artwork.mutate(ctx, m)
+	case *AspectRatioMutation:
+		return c.AspectRatio.mutate(ctx, m)
+	case *BaseConfigMutation:
+		return c.BaseConfig.mutate(ctx, m)
 	case *ComfyUINodeMutation:
 		return c.ComfyUINode.mutate(ctx, m)
 	case *CommentMutation:
 		return c.Comment.mutate(ctx, m)
 	case *MediaMutation:
 		return c.Media.mutate(ctx, m)
+	case *StyleMutation:
+		return c.Style.mutate(ctx, m)
 	case *TagMutation:
 		return c.Tag.mutate(ctx, m)
 	case *UserMutation:
@@ -481,6 +507,272 @@ func (c *ArtworkClient) mutate(ctx context.Context, m *ArtworkMutation) (Value, 
 		return (&ArtworkDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Artwork mutation op: %q", m.Op())
+	}
+}
+
+// AspectRatioClient is a client for the AspectRatio schema.
+type AspectRatioClient struct {
+	config
+}
+
+// NewAspectRatioClient returns a client for the AspectRatio from the given config.
+func NewAspectRatioClient(c config) *AspectRatioClient {
+	return &AspectRatioClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `aspectratio.Hooks(f(g(h())))`.
+func (c *AspectRatioClient) Use(hooks ...Hook) {
+	c.hooks.AspectRatio = append(c.hooks.AspectRatio, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `aspectratio.Intercept(f(g(h())))`.
+func (c *AspectRatioClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AspectRatio = append(c.inters.AspectRatio, interceptors...)
+}
+
+// Create returns a builder for creating a AspectRatio entity.
+func (c *AspectRatioClient) Create() *AspectRatioCreate {
+	mutation := newAspectRatioMutation(c.config, OpCreate)
+	return &AspectRatioCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AspectRatio entities.
+func (c *AspectRatioClient) CreateBulk(builders ...*AspectRatioCreate) *AspectRatioCreateBulk {
+	return &AspectRatioCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AspectRatioClient) MapCreateBulk(slice any, setFunc func(*AspectRatioCreate, int)) *AspectRatioCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AspectRatioCreateBulk{err: fmt.Errorf("calling to AspectRatioClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AspectRatioCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AspectRatioCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AspectRatio.
+func (c *AspectRatioClient) Update() *AspectRatioUpdate {
+	mutation := newAspectRatioMutation(c.config, OpUpdate)
+	return &AspectRatioUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AspectRatioClient) UpdateOne(ar *AspectRatio) *AspectRatioUpdateOne {
+	mutation := newAspectRatioMutation(c.config, OpUpdateOne, withAspectRatio(ar))
+	return &AspectRatioUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AspectRatioClient) UpdateOneID(id int) *AspectRatioUpdateOne {
+	mutation := newAspectRatioMutation(c.config, OpUpdateOne, withAspectRatioID(id))
+	return &AspectRatioUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AspectRatio.
+func (c *AspectRatioClient) Delete() *AspectRatioDelete {
+	mutation := newAspectRatioMutation(c.config, OpDelete)
+	return &AspectRatioDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AspectRatioClient) DeleteOne(ar *AspectRatio) *AspectRatioDeleteOne {
+	return c.DeleteOneID(ar.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AspectRatioClient) DeleteOneID(id int) *AspectRatioDeleteOne {
+	builder := c.Delete().Where(aspectratio.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AspectRatioDeleteOne{builder}
+}
+
+// Query returns a query builder for AspectRatio.
+func (c *AspectRatioClient) Query() *AspectRatioQuery {
+	return &AspectRatioQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAspectRatio},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AspectRatio entity by its id.
+func (c *AspectRatioClient) Get(ctx context.Context, id int) (*AspectRatio, error) {
+	return c.Query().Where(aspectratio.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AspectRatioClient) GetX(ctx context.Context, id int) *AspectRatio {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AspectRatioClient) Hooks() []Hook {
+	return c.hooks.AspectRatio
+}
+
+// Interceptors returns the client interceptors.
+func (c *AspectRatioClient) Interceptors() []Interceptor {
+	return c.inters.AspectRatio
+}
+
+func (c *AspectRatioClient) mutate(ctx context.Context, m *AspectRatioMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AspectRatioCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AspectRatioUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AspectRatioUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AspectRatioDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AspectRatio mutation op: %q", m.Op())
+	}
+}
+
+// BaseConfigClient is a client for the BaseConfig schema.
+type BaseConfigClient struct {
+	config
+}
+
+// NewBaseConfigClient returns a client for the BaseConfig from the given config.
+func NewBaseConfigClient(c config) *BaseConfigClient {
+	return &BaseConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `baseconfig.Hooks(f(g(h())))`.
+func (c *BaseConfigClient) Use(hooks ...Hook) {
+	c.hooks.BaseConfig = append(c.hooks.BaseConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `baseconfig.Intercept(f(g(h())))`.
+func (c *BaseConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.BaseConfig = append(c.inters.BaseConfig, interceptors...)
+}
+
+// Create returns a builder for creating a BaseConfig entity.
+func (c *BaseConfigClient) Create() *BaseConfigCreate {
+	mutation := newBaseConfigMutation(c.config, OpCreate)
+	return &BaseConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of BaseConfig entities.
+func (c *BaseConfigClient) CreateBulk(builders ...*BaseConfigCreate) *BaseConfigCreateBulk {
+	return &BaseConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BaseConfigClient) MapCreateBulk(slice any, setFunc func(*BaseConfigCreate, int)) *BaseConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BaseConfigCreateBulk{err: fmt.Errorf("calling to BaseConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BaseConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BaseConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for BaseConfig.
+func (c *BaseConfigClient) Update() *BaseConfigUpdate {
+	mutation := newBaseConfigMutation(c.config, OpUpdate)
+	return &BaseConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BaseConfigClient) UpdateOne(bc *BaseConfig) *BaseConfigUpdateOne {
+	mutation := newBaseConfigMutation(c.config, OpUpdateOne, withBaseConfig(bc))
+	return &BaseConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BaseConfigClient) UpdateOneID(id int) *BaseConfigUpdateOne {
+	mutation := newBaseConfigMutation(c.config, OpUpdateOne, withBaseConfigID(id))
+	return &BaseConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for BaseConfig.
+func (c *BaseConfigClient) Delete() *BaseConfigDelete {
+	mutation := newBaseConfigMutation(c.config, OpDelete)
+	return &BaseConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BaseConfigClient) DeleteOne(bc *BaseConfig) *BaseConfigDeleteOne {
+	return c.DeleteOneID(bc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BaseConfigClient) DeleteOneID(id int) *BaseConfigDeleteOne {
+	builder := c.Delete().Where(baseconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BaseConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for BaseConfig.
+func (c *BaseConfigClient) Query() *BaseConfigQuery {
+	return &BaseConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBaseConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a BaseConfig entity by its id.
+func (c *BaseConfigClient) Get(ctx context.Context, id int) (*BaseConfig, error) {
+	return c.Query().Where(baseconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BaseConfigClient) GetX(ctx context.Context, id int) *BaseConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BaseConfigClient) Hooks() []Hook {
+	return c.hooks.BaseConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *BaseConfigClient) Interceptors() []Interceptor {
+	return c.inters.BaseConfig
+}
+
+func (c *BaseConfigClient) mutate(ctx context.Context, m *BaseConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BaseConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BaseConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BaseConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BaseConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown BaseConfig mutation op: %q", m.Op())
 	}
 }
 
@@ -997,6 +1289,157 @@ func (c *MediaClient) mutate(ctx context.Context, m *MediaMutation) (Value, erro
 	}
 }
 
+// StyleClient is a client for the Style schema.
+type StyleClient struct {
+	config
+}
+
+// NewStyleClient returns a client for the Style from the given config.
+func NewStyleClient(c config) *StyleClient {
+	return &StyleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `style.Hooks(f(g(h())))`.
+func (c *StyleClient) Use(hooks ...Hook) {
+	c.hooks.Style = append(c.hooks.Style, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `style.Intercept(f(g(h())))`.
+func (c *StyleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Style = append(c.inters.Style, interceptors...)
+}
+
+// Create returns a builder for creating a Style entity.
+func (c *StyleClient) Create() *StyleCreate {
+	mutation := newStyleMutation(c.config, OpCreate)
+	return &StyleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Style entities.
+func (c *StyleClient) CreateBulk(builders ...*StyleCreate) *StyleCreateBulk {
+	return &StyleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *StyleClient) MapCreateBulk(slice any, setFunc func(*StyleCreate, int)) *StyleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &StyleCreateBulk{err: fmt.Errorf("calling to StyleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*StyleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &StyleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Style.
+func (c *StyleClient) Update() *StyleUpdate {
+	mutation := newStyleMutation(c.config, OpUpdate)
+	return &StyleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *StyleClient) UpdateOne(s *Style) *StyleUpdateOne {
+	mutation := newStyleMutation(c.config, OpUpdateOne, withStyle(s))
+	return &StyleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *StyleClient) UpdateOneID(id int) *StyleUpdateOne {
+	mutation := newStyleMutation(c.config, OpUpdateOne, withStyleID(id))
+	return &StyleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Style.
+func (c *StyleClient) Delete() *StyleDelete {
+	mutation := newStyleMutation(c.config, OpDelete)
+	return &StyleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *StyleClient) DeleteOne(s *Style) *StyleDeleteOne {
+	return c.DeleteOneID(s.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *StyleClient) DeleteOneID(id int) *StyleDeleteOne {
+	builder := c.Delete().Where(style.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &StyleDeleteOne{builder}
+}
+
+// Query returns a query builder for Style.
+func (c *StyleClient) Query() *StyleQuery {
+	return &StyleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeStyle},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Style entity by its id.
+func (c *StyleClient) Get(ctx context.Context, id int) (*Style, error) {
+	return c.Query().Where(style.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *StyleClient) GetX(ctx context.Context, id int) *Style {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryWorkflows queries the workflows edge of a Style.
+func (c *StyleClient) QueryWorkflows(s *Style) *WorkflowQuery {
+	query := (&WorkflowClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(style.Table, style.FieldID, id),
+			sqlgraph.To(workflow.Table, workflow.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, style.WorkflowsTable, style.WorkflowsColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *StyleClient) Hooks() []Hook {
+	hooks := c.hooks.Style
+	return append(hooks[:len(hooks):len(hooks)], style.Hooks[:]...)
+}
+
+// Interceptors returns the client interceptors.
+func (c *StyleClient) Interceptors() []Interceptor {
+	inters := c.inters.Style
+	return append(inters[:len(inters):len(inters)], style.Interceptors[:]...)
+}
+
+func (c *StyleClient) mutate(ctx context.Context, m *StyleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&StyleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&StyleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&StyleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&StyleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Style mutation op: %q", m.Op())
+	}
+}
+
 // TagClient is a client for the Tag schema.
 type TagClient struct {
 	config
@@ -1483,6 +1926,22 @@ func (c *WorkflowClient) GetX(ctx context.Context, id int) *Workflow {
 	return obj
 }
 
+// QueryStyle queries the style edge of a Workflow.
+func (c *WorkflowClient) QueryStyle(w *Workflow) *StyleQuery {
+	query := (&StyleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := w.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workflow.Table, workflow.FieldID, id),
+			sqlgraph.To(style.Table, style.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, workflow.StyleTable, workflow.StyleColumn),
+		)
+		fromV = sqlgraph.Neighbors(w.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *WorkflowClient) Hooks() []Hook {
 	hooks := c.hooks.Workflow
@@ -1513,9 +1972,11 @@ func (c *WorkflowClient) mutate(ctx context.Context, m *WorkflowMutation) (Value
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Artwork, ComfyUINode, Comment, Media, Tag, User, Workflow []ent.Hook
+		Artwork, AspectRatio, BaseConfig, ComfyUINode, Comment, Media, Style, Tag, User,
+		Workflow []ent.Hook
 	}
 	inters struct {
-		Artwork, ComfyUINode, Comment, Media, Tag, User, Workflow []ent.Interceptor
+		Artwork, AspectRatio, BaseConfig, ComfyUINode, Comment, Media, Style, Tag, User,
+		Workflow []ent.Interceptor
 	}
 )

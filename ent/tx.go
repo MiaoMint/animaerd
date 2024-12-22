@@ -14,12 +14,18 @@ type Tx struct {
 	config
 	// Artwork is the client for interacting with the Artwork builders.
 	Artwork *ArtworkClient
+	// AspectRatio is the client for interacting with the AspectRatio builders.
+	AspectRatio *AspectRatioClient
+	// BaseConfig is the client for interacting with the BaseConfig builders.
+	BaseConfig *BaseConfigClient
 	// ComfyUINode is the client for interacting with the ComfyUINode builders.
 	ComfyUINode *ComfyUINodeClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
 	// Media is the client for interacting with the Media builders.
 	Media *MediaClient
+	// Style is the client for interacting with the Style builders.
+	Style *StyleClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// User is the client for interacting with the User builders.
@@ -158,9 +164,12 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Artwork = NewArtworkClient(tx.config)
+	tx.AspectRatio = NewAspectRatioClient(tx.config)
+	tx.BaseConfig = NewBaseConfigClient(tx.config)
 	tx.ComfyUINode = NewComfyUINodeClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
 	tx.Media = NewMediaClient(tx.config)
+	tx.Style = NewStyleClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.Workflow = NewWorkflowClient(tx.config)

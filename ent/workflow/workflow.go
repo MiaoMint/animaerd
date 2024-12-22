@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -27,10 +28,21 @@ const (
 	FieldType = "type"
 	// FieldJSON holds the string denoting the json field in the database.
 	FieldJSON = "json"
+	// FieldImageResultNode holds the string denoting the image_result_node field in the database.
+	FieldImageResultNode = "image_result_node"
 	// FieldEnabled holds the string denoting the enabled field in the database.
 	FieldEnabled = "enabled"
+	// EdgeStyle holds the string denoting the style edge name in mutations.
+	EdgeStyle = "style"
 	// Table holds the table name of the workflow in the database.
 	Table = "workflows"
+	// StyleTable is the table that holds the style relation/edge.
+	StyleTable = "workflows"
+	// StyleInverseTable is the table name for the Style entity.
+	// It exists in this package in order to avoid circular dependency with the "style" package.
+	StyleInverseTable = "styles"
+	// StyleColumn is the table column denoting the style relation/edge.
+	StyleColumn = "style_workflows"
 )
 
 // Columns holds all SQL columns for workflow fields.
@@ -42,13 +54,25 @@ var Columns = []string{
 	FieldName,
 	FieldType,
 	FieldJSON,
+	FieldImageResultNode,
 	FieldEnabled,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "workflows"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"style_workflows",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -135,7 +159,26 @@ func ByJSON(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldJSON, opts...).ToFunc()
 }
 
+// ByImageResultNode orders the results by the image_result_node field.
+func ByImageResultNode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldImageResultNode, opts...).ToFunc()
+}
+
 // ByEnabled orders the results by the enabled field.
 func ByEnabled(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEnabled, opts...).ToFunc()
+}
+
+// ByStyleField orders the results by style field.
+func ByStyleField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStyleStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newStyleStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StyleInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, StyleTable, StyleColumn),
+	)
 }

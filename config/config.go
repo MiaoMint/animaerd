@@ -11,6 +11,7 @@ type Config struct {
 	Port                       string `yaml:"port" env:"PORT"`
 	JwtSecret                  string `yaml:"jwt_secret" env:"JWT_SECRET"`
 	JwtAccessExpire            int64  `yaml:"jwt_access_expire" env:"JWT_ACCESS_EXPIRE"`
+	DashboardURL               string `yaml:"dashboard_url" env:"DASHBOARD_URL"`
 	DatabaseSourceURL          string `yaml:"database_source_url" env:"DATABASE_SOURCE_URL"`
 	RedisHost                  string `yaml:"redis_host" env:"REDIS_HOST"`
 	RedisPort                  int    `yaml:"redis_port" env:"REDIS_PORT"`

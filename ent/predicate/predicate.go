@@ -9,6 +9,12 @@ import (
 // Artwork is the predicate function for artwork builders.
 type Artwork func(*sql.Selector)
 
+// AspectRatio is the predicate function for aspectratio builders.
+type AspectRatio func(*sql.Selector)
+
+// BaseConfig is the predicate function for baseconfig builders.
+type BaseConfig func(*sql.Selector)
+
 // ComfyUINode is the predicate function for comfyuinode builders.
 type ComfyUINode func(*sql.Selector)
 
@@ -17,6 +23,9 @@ type Comment func(*sql.Selector)
 
 // Media is the predicate function for media builders.
 type Media func(*sql.Selector)
+
+// Style is the predicate function for style builders.
+type Style func(*sql.Selector)
 
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)

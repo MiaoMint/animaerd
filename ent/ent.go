@@ -13,9 +13,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/aspectratio"
+	"github.com/MiaoMint/animaerd/ent/baseconfig"
 	"github.com/MiaoMint/animaerd/ent/comfyuinode"
 	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
 	"github.com/MiaoMint/animaerd/ent/workflow"
@@ -80,9 +83,12 @@ func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			artwork.Table:     artwork.ValidColumn,
+			aspectratio.Table: aspectratio.ValidColumn,
+			baseconfig.Table:  baseconfig.ValidColumn,
 			comfyuinode.Table: comfyuinode.ValidColumn,
 			comment.Table:     comment.ValidColumn,
 			media.Table:       media.ValidColumn,
+			style.Table:       style.ValidColumn,
 			tag.Table:         tag.ValidColumn,
 			user.Table:        user.ValidColumn,
 			workflow.Table:    workflow.ValidColumn,

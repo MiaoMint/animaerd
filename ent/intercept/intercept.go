@@ -9,10 +9,13 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/artwork"
+	"github.com/MiaoMint/animaerd/ent/aspectratio"
+	"github.com/MiaoMint/animaerd/ent/baseconfig"
 	"github.com/MiaoMint/animaerd/ent/comfyuinode"
 	"github.com/MiaoMint/animaerd/ent/comment"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ent/predicate"
+	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
 	"github.com/MiaoMint/animaerd/ent/workflow"
@@ -101,6 +104,60 @@ func (f TraverseArtwork) Traverse(ctx context.Context, q ent.Query) error {
 	return fmt.Errorf("unexpected query type %T. expect *ent.ArtworkQuery", q)
 }
 
+// The AspectRatioFunc type is an adapter to allow the use of ordinary function as a Querier.
+type AspectRatioFunc func(context.Context, *ent.AspectRatioQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f AspectRatioFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.AspectRatioQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.AspectRatioQuery", q)
+}
+
+// The TraverseAspectRatio type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseAspectRatio func(context.Context, *ent.AspectRatioQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseAspectRatio) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseAspectRatio) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.AspectRatioQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.AspectRatioQuery", q)
+}
+
+// The BaseConfigFunc type is an adapter to allow the use of ordinary function as a Querier.
+type BaseConfigFunc func(context.Context, *ent.BaseConfigQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f BaseConfigFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.BaseConfigQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.BaseConfigQuery", q)
+}
+
+// The TraverseBaseConfig type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseBaseConfig func(context.Context, *ent.BaseConfigQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseBaseConfig) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseBaseConfig) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.BaseConfigQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.BaseConfigQuery", q)
+}
+
 // The ComfyUINodeFunc type is an adapter to allow the use of ordinary function as a Querier.
 type ComfyUINodeFunc func(context.Context, *ent.ComfyUINodeQuery) (ent.Value, error)
 
@@ -180,6 +237,33 @@ func (f TraverseMedia) Traverse(ctx context.Context, q ent.Query) error {
 		return f(ctx, q)
 	}
 	return fmt.Errorf("unexpected query type %T. expect *ent.MediaQuery", q)
+}
+
+// The StyleFunc type is an adapter to allow the use of ordinary function as a Querier.
+type StyleFunc func(context.Context, *ent.StyleQuery) (ent.Value, error)
+
+// Query calls f(ctx, q).
+func (f StyleFunc) Query(ctx context.Context, q ent.Query) (ent.Value, error) {
+	if q, ok := q.(*ent.StyleQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *ent.StyleQuery", q)
+}
+
+// The TraverseStyle type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseStyle func(context.Context, *ent.StyleQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseStyle) Intercept(next ent.Querier) ent.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseStyle) Traverse(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.StyleQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *ent.StyleQuery", q)
 }
 
 // The TagFunc type is an adapter to allow the use of ordinary function as a Querier.
@@ -268,12 +352,18 @@ func NewQuery(q ent.Query) (Query, error) {
 	switch q := q.(type) {
 	case *ent.ArtworkQuery:
 		return &query[*ent.ArtworkQuery, predicate.Artwork, artwork.OrderOption]{typ: ent.TypeArtwork, tq: q}, nil
+	case *ent.AspectRatioQuery:
+		return &query[*ent.AspectRatioQuery, predicate.AspectRatio, aspectratio.OrderOption]{typ: ent.TypeAspectRatio, tq: q}, nil
+	case *ent.BaseConfigQuery:
+		return &query[*ent.BaseConfigQuery, predicate.BaseConfig, baseconfig.OrderOption]{typ: ent.TypeBaseConfig, tq: q}, nil
 	case *ent.ComfyUINodeQuery:
 		return &query[*ent.ComfyUINodeQuery, predicate.ComfyUINode, comfyuinode.OrderOption]{typ: ent.TypeComfyUINode, tq: q}, nil
 	case *ent.CommentQuery:
 		return &query[*ent.CommentQuery, predicate.Comment, comment.OrderOption]{typ: ent.TypeComment, tq: q}, nil
 	case *ent.MediaQuery:
 		return &query[*ent.MediaQuery, predicate.Media, media.OrderOption]{typ: ent.TypeMedia, tq: q}, nil
+	case *ent.StyleQuery:
+		return &query[*ent.StyleQuery, predicate.Style, style.OrderOption]{typ: ent.TypeStyle, tq: q}, nil
 	case *ent.TagQuery:
 		return &query[*ent.TagQuery, predicate.Tag, tag.OrderOption]{typ: ent.TypeTag, tq: q}, nil
 	case *ent.UserQuery:
