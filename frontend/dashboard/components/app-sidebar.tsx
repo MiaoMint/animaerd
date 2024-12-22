@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   Home,
   MessageCircle,
+  Ratio,
   Settings2,
   Sparkles,
   Tags,
@@ -34,18 +35,13 @@ const data = {
     },
     {
       title: "Users",
-      url: "/comfyui-nodes",
+      url: "/users",
       icon: UsersRound,
     },
     {
       title: "Comments",
       url: "/comments",
       icon: MessageCircle,
-    },
-    {
-      title: "Workflows",
-      url: "/workflows",
-      icon: Workflow,
     },
     {
       title: "Tags",
@@ -55,6 +51,12 @@ const data = {
     {
       title: "Aspect Ratio",
       url: "/aspect-ratio",
+      icon: Ratio,
+    },
+
+    {
+      title: "Workflows",
+      url: "/workflows",
       icon: Workflow,
     },
     {

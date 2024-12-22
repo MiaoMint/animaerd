@@ -98,6 +98,14 @@ func InitRouter(app *fiber.App) {
 	styleGroup.Get("/:id", handler.GetStyle)
 	styleGroup.Post("/", handler.CreateStyle)
 	styleGroup.Put("/:id", handler.UpdateStyle)
+	styleGroup.Put("/:id/icon", handler.UpdateStyleIcon)
 	styleGroup.Delete("/:id", handler.DeleteStyle)
+
+	workflowGroup := app.Group("/workflow")
+	workflowGroup.Get("/", handler.GetWorkflowList)
+	workflowGroup.Get("/:id", handler.GetWorkflow)
+	workflowGroup.Post("/", handler.CreateWorkflow)
+	workflowGroup.Put("/:id", handler.UpdateWorkflow)
+	workflowGroup.Delete("/:id", handler.DeleteWorkflow)
 
 }

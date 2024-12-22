@@ -16,12 +16,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
 
 export default function MainLayou({ children }: PropsWithChildren) {
   const { user } = useAuth();
+  const pathname = usePathname();
 
   if (!user?.is_admin) {
-    return <div>Unauthorized</div>;
+    return (
+      <div className="h-screen flex justify-center items-center">
+        Unauthorized
+      </div>
+    );
   }
 
   return (
@@ -35,11 +41,15 @@ export default function MainLayou({ children }: PropsWithChildren) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Home</BreadcrumbLink>
+                  <BreadcrumbLink href="/">Home</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                  <BreadcrumbPage>
+                    <BreadcrumbLink href={pathname}>
+                      {pathname.replaceAll("/", "")}
+                    </BreadcrumbLink>
+                  </BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

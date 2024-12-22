@@ -1,12 +1,22 @@
 package handler
 
 import (
+	"bytes"
+	"fmt"
+	"net/http"
+	"path"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/MiaoMint/animaerd/dto"
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/style"
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
+	"github.com/MiaoMint/animaerd/pkg/storage"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // GetStyleList retrieves all styles
@@ -57,15 +67,58 @@ func GetStyle(c *fiber.Ctx) error {
 
 // CreateStyle creates a new style
 func CreateStyle(c *fiber.Ctx) error {
-	var req dto.CreateStyleRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.JSON(result.NewErrorResult("Invalid request body", 400))
+	name := c.FormValue("name")
+	_workflowID := c.FormValue("workflow_id")
+	workflowID, err := strconv.Atoi(_workflowID)
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid workflow ID", 400))
 	}
+	fileHeader, err := c.FormFile("icon")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid icon", 400))
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return err
+	}
+
+	size := fileHeader.Size
+	buffer := make([]byte, size)
+	file.Read(buffer)
+	fileBytes := bytes.NewReader(buffer)
+	fileType := http.DetectContentType(buffer)
+
+	if !strings.HasPrefix(fileType, "image/") {
+		return c.JSON(result.NewErrorResult("file type not allowed", 400))
+	}
+
+	fileExt := path.Ext(fileHeader.Filename)
+
+	date := time.Now().Format("2006-01-02")
+	randomID, err := uuid.NewRandom()
+	if err != nil {
+		return err
+	}
+
+	key := fmt.Sprintf("%s/%s%s", date, randomID.String(), fileExt)
+
+	if _, err := ext.StorageClient().UploadFile(&storage.StorageFile{
+		Key:           key,
+		FileBytes:     fileBytes,
+		ContentType:   fileType,
+		ContentLength: size,
+	}); err != nil {
+		return err
+	}
+
+	url := ext.StorageClient().GetPublicFileURL(key)
 
 	entClient := ext.EntClient()
 	style, err := entClient.Style.Create().
-		SetName(req.Name).
-		SetIcon(req.Icon).
+		SetName(name).
+		SetIcon(url).
+		SetWorkflowsID(workflowID).
 		Save(c.Context())
 
 	if err != nil {
@@ -94,7 +147,6 @@ func UpdateStyle(c *fiber.Ctx) error {
 	entClient := ext.EntClient()
 	style, err := entClient.Style.UpdateOneID(id).
 		SetNillableName(req.Name).
-		SetNillableIcon(req.Icon).
 		Save(c.Context())
 
 	if err != nil {
@@ -109,6 +161,63 @@ func UpdateStyle(c *fiber.Ctx) error {
 		Name: style.Name,
 		Icon: style.Icon,
 	}))
+}
+
+func UpdateStyleIcon(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid user ID", 400))
+	}
+	entClient := ext.EntClient()
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		return err
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return err
+	}
+
+	size := fileHeader.Size
+	buffer := make([]byte, size)
+	file.Read(buffer)
+	fileBytes := bytes.NewReader(buffer)
+	fileType := http.DetectContentType(buffer)
+
+	if !strings.HasPrefix(fileType, "image/") {
+		return c.JSON(result.NewErrorResult("file type not allowed", 400))
+	}
+
+	fileExt := path.Ext(fileHeader.Filename)
+
+	date := time.Now().Format("2006-01-02")
+	randomID, err := uuid.NewRandom()
+	if err != nil {
+		return err
+	}
+
+	key := fmt.Sprintf("%s/%s%s", date, randomID.String(), fileExt)
+
+	if _, err := ext.StorageClient().UploadFile(&storage.StorageFile{
+		Key:           key,
+		FileBytes:     fileBytes,
+		ContentType:   fileType,
+		ContentLength: size,
+	}); err != nil {
+		return err
+	}
+
+	url := ext.StorageClient().GetPublicFileURL(key)
+
+	_, err = entClient.Style.UpdateOneID(id).
+		SetNillableIcon(&url).
+		Save(c.Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result.NewSuccessResult(nil))
 }
 
 // DeleteStyle deletes a style

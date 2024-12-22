@@ -2,17 +2,24 @@ import { BaseResponse } from "@/types/base";
 import { http } from "@/utils/request";
 
 export const styleApi = {
-  // Get user by ID
-  getStyles: () => http.get<BaseResponse<UserResponse>>(`/style`),
+  getStyles: () => 
+    http.get<BaseResponse<StyleResponse[]>>("/style"),
 
-  // Update user profile
-  updateUser: (data: UpdateUserRequest) =>
-    http.put<BaseResponse<UserResponse>>("/user", data),
+  getStyle: (id: number) =>
+    http.get<BaseResponse<StyleResponse>>(`/style/${id}`),
 
-  // Upload user avatar
-  uploadAvatar: (file: File) => {
+  createStyle: (data: FormData) =>
+    http.post<BaseResponse<StyleResponse>>("/style", data),
+
+  updateStyle: (id: number, data: UpdateStyleRequest) =>
+    http.put<BaseResponse<StyleResponse>>(`/style/${id}`, data),
+
+  updateStyleIcon: (id: number, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return http.put<BaseResponse<UserResponse>>("/user/avatar", formData);
+    return http.put<BaseResponse<null>>(`/style/${id}/icon`, formData);
   },
+
+  deleteStyle: (id: number) =>
+    http.delete<BaseResponse<null>>(`/style/${id}`),
 };
