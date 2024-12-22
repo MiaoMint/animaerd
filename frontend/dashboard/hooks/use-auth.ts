@@ -12,7 +12,9 @@ export function useAuth() {
 
   const handleLogin = async (token: string) => {
     try {
-      console.log(token);
+      if (!token) {
+        console.error("Token is not provided");
+      }
 
       tokenStorage.set(token);
       await refetchUser();

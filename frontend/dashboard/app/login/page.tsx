@@ -1,12 +1,16 @@
 "use client";
 import { useAuth } from "@/hooks/use-auth";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 
-function Login() {
-  const searchParams = useSearchParams();
+type SearchParams = { [key: string]: string | string[] | undefined };
+
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const { handleLogin } = useAuth();
-  const token = searchParams.get("token");
+  const token = searchParams["token"] as string | undefined;
 
   useEffect(() => {
     if (!token) {
@@ -34,13 +38,5 @@ function Login() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Login />
-    </Suspense>
   );
 }
