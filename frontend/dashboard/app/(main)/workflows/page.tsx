@@ -18,55 +18,74 @@ import {
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
-import { Plus, Loader2, Pencil } from "lucide-react";
+import { useState } from "react";
+import { Plus, Loader2, Pencil, Trash2 } from "lucide-react";
 import { workflowApi } from "@/api/workflow";
 import { WorkflowDialog } from "./workflow-dialog";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 // import { EditWorkflowDialog } from "./edit-dialog";
 
 export default function WorkflowsPage() {
-  const [workflows, setWorkflows] = useState<WorkflowResponse[] | undefined>(
-    []
-  );
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editWorkflow, setEditWorkflow] = useState<WorkflowResponse | null>(
     null
   );
+  const [deleteWorkflowId, setDeleteWorkflowId] = useState<number | null>(null);
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchWorkflows = async () => {
-    setIsLoading(true);
-    try {
-      const res = await workflowApi.getWorkflows();
-      setWorkflows(res.data);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch workflows",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: workflows, isLoading } = useQuery({
+    queryKey: ["workflows"],
+    queryFn: () => workflowApi.getWorkflows(),
+  });
 
-  const handleToggleEnabled = async (id: number, enabled: boolean) => {
-    try {
-      await workflowApi.updateWorkflow(id, { enabled });
-      fetchWorkflows();
-    } catch (error) {
+  const toggleMutation = useMutation({
+    mutationFn: ({ id, enabled }: { id: number; enabled: boolean }) =>
+      workflowApi.updateWorkflow(id, { enabled }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workflows"] });
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to update workflow status",
         variant: "destructive",
       });
-    }
-  };
+    },
+  });
 
-  useEffect(() => {
-    fetchWorkflows();
-  }, []);
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => workflowApi.deleteWorkflow(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workflows"] });
+      toast({
+        title: "Success",
+        description: "Workflow deleted successfully",
+      });
+      setDeleteWorkflowId(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete workflow",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleToggleEnabled = (id: number, enabled: boolean) => {
+    toggleMutation.mutate({ id, enabled });
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -95,29 +114,38 @@ export default function WorkflowsPage() {
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
-            ) : workflows?.map((workflow) => (
-              <TableRow key={workflow.id}>
-                <TableCell>{workflow.name}</TableCell>
-                <TableCell>{workflow.type}</TableCell>
-                <TableCell>
-                  <Switch
-                    checked={workflow.enabled}
-                    onCheckedChange={(checked) =>
-                      handleToggleEnabled(workflow.id, checked)
-                    }
-                  />
-                </TableCell>
-                <TableCell className="flex justify-end space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setEditWorkflow(workflow)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            ) : (
+              workflows?.data?.map((workflow) => (
+                <TableRow key={workflow.id}>
+                  <TableCell>{workflow.name}</TableCell>
+                  <TableCell>{workflow.type}</TableCell>
+                  <TableCell>
+                    <Switch
+                      checked={workflow.enabled}
+                      onCheckedChange={(checked) =>
+                        handleToggleEnabled(workflow.id, checked)
+                      }
+                    />
+                  </TableCell>
+                  <TableCell className="flex justify-end space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditWorkflow(workflow)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeleteWorkflowId(workflow.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </Card>
@@ -125,7 +153,9 @@ export default function WorkflowsPage() {
       <WorkflowDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
-        onSuccess={fetchWorkflows}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["workflows"] });
+        }}
         mode="create"
       />
 
@@ -133,9 +163,36 @@ export default function WorkflowsPage() {
         open={!!editWorkflow}
         workflow={editWorkflow}
         onOpenChange={() => setEditWorkflow(null)}
-        onSuccess={fetchWorkflows}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["workflows"] });
+        }}
         mode="edit"
       />
+
+      <AlertDialog
+        open={!!deleteWorkflowId}
+        onOpenChange={() => setDeleteWorkflowId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              workflow.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                deleteWorkflowId && deleteMutation.mutate(deleteWorkflowId)
+              }
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { http } from "@/utils/request";
 
 export const workflowApi = {
   getWorkflows: () => 
-    http.get<BaseResponse<WorkflowResponse[]>>("/workflow"),
+    http.get<BaseResponse<WorkflowResponse[] | null>>("/workflow"),
 
   getWorkflow: (id: number) =>
     http.get<BaseResponse<WorkflowResponse>>(`/workflow/${id}`),

@@ -70,7 +70,7 @@ const data = {
       icon: Settings2,
       items: [
         {
-          title: "ComfyUI Nodes",
+          title: "ComfyUI Server Nodes",
           url: "/comfyui-nodes",
         },
         {

@@ -2,6 +2,13 @@ import { BaseResponse } from "@/types/base";
 import { http } from "@/utils/request";
 
 export const userApi = {
+  getUserList: () => http.get<BaseResponse<UserResponse[]>>("/admin/user"),
+
+  updateUserRole: (id: number, role: "admin" | "user") =>
+    http.put<BaseResponse<UserResponse[]>>(
+      `/admin/user/${id}/role?role=${role}`
+    ),
+
   // Get user by ID
   getUserById: (id: number) =>
     http.get<BaseResponse<UserResponse>>(`/user/${id}`),

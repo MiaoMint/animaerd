@@ -24,14 +24,6 @@ import { Plus, Loader2, Pencil, Trash } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { comfyuiNodeApi } from "@/api/comfyui-node";
 
-interface ComfyUINode {
-  id: number;
-  name: string;
-  endpoint: string;
-  enabled: boolean;
-  createdTime: string;
-}
-
 // API functions
 const fetchNodes = async () => {
   const response = await comfyuiNodeApi.getNodes();
@@ -55,7 +47,7 @@ export default function ComfyUINodesPage() {
     e.preventDefault();
     setIsLoading(true);
     const formData = new FormData(e.currentTarget);
-    
+
     try {
       await comfyuiNodeApi.createNode({
         name: formData.get("name") as string,
@@ -83,7 +75,7 @@ export default function ComfyUINodesPage() {
     if (!selectedNode) return;
     setIsLoading(true);
     const formData = new FormData(e.currentTarget);
-    
+
     try {
       await comfyuiNodeApi.updateNode(selectedNode.id, {
         name: formData.get("name") as string,
@@ -112,7 +104,9 @@ export default function ComfyUINodesPage() {
       queryClient.invalidateQueries({ queryKey: ["comfyui-nodes"] });
       toast({
         title: "Success",
-        description: `Node ${node.enabled ? "disabled" : "enabled"} successfully`,
+        description: `Node ${
+          node.enabled ? "disabled" : "enabled"
+        } successfully`,
       });
     } catch (error) {
       toast({
@@ -125,7 +119,7 @@ export default function ComfyUINodesPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this node?")) return;
-    
+
     try {
       await comfyuiNodeApi.deleteNode(id);
       queryClient.invalidateQueries({ queryKey: ["comfyui-nodes"] });
@@ -145,7 +139,7 @@ export default function ComfyUINodesPage() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">ComfyUI Nodes</h1>
+        <h1 className="text-2xl font-bold">ComfyUI Server Nodes</h1>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -159,11 +153,21 @@ export default function ComfyUINodesPage() {
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Name
+                </label>
                 <Input id="name" name="name" required />
               </div>
               <div>
-                <label htmlFor="endpoint" className="block text-sm font-medium mb-1">Endpoint</label>
+                <label
+                  htmlFor="endpoint"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Endpoint
+                </label>
                 <Input id="endpoint" name="endpoint" required />
               </div>
               <Button type="submit" disabled={isLoading}>
@@ -179,6 +183,7 @@ export default function ComfyUINodesPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Endpoint</TableHead>
               <TableHead>Status</TableHead>
@@ -193,38 +198,43 @@ export default function ComfyUINodesPage() {
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
-            ) : nodes?.map((node) => (
-              <TableRow key={node.id}>
-                <TableCell>{node.name}</TableCell>
-                <TableCell>{node.endpoint}</TableCell>
-                <TableCell>
-                  <Switch
-                    checked={node.enabled}
-                    onCheckedChange={() => handleToggleEnabled(node)}
-                  />
-                </TableCell>
-                <TableCell>{new Date(node.createdTime).toLocaleDateString()}</TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setSelectedNode(node);
-                      setIsEditOpen(true);
-                    }}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(node.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            ) : (
+              nodes?.map((node) => (
+                <TableRow key={node.id}>
+                  <TableCell>{node.id}</TableCell>
+                  <TableCell>{node.name}</TableCell>
+                  <TableCell>{node.endpoint}</TableCell>
+                  <TableCell>
+                    <Switch
+                      checked={node.enabled}
+                      onCheckedChange={() => handleToggleEnabled(node)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {new Date(node.createdTime).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedNode(node);
+                        setIsEditOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(node.id)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -236,7 +246,12 @@ export default function ComfyUINodesPage() {
           </DialogHeader>
           <form onSubmit={handleUpdate} className="space-y-4">
             <div>
-              <label htmlFor="edit-name" className="block text-sm font-medium mb-1">Name</label>
+              <label
+                htmlFor="edit-name"
+                className="block text-sm font-medium mb-1"
+              >
+                Name
+              </label>
               <Input
                 id="edit-name"
                 name="name"
@@ -245,7 +260,12 @@ export default function ComfyUINodesPage() {
               />
             </div>
             <div>
-              <label htmlFor="edit-endpoint" className="block text-sm font-medium mb-1">Endpoint</label>
+              <label
+                htmlFor="edit-endpoint"
+                className="block text-sm font-medium mb-1"
+              >
+                Endpoint
+              </label>
               <Input
                 id="edit-endpoint"
                 name="endpoint"

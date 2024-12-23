@@ -82,6 +82,11 @@ func InitRouter(app *fiber.App) {
 		return c.Next()
 	})
 
+	adminGroup := app.Group("/admin")
+	adminUserGroup := adminGroup.Group("/user")
+	adminUserGroup.Get("/", handler.GetUserList)
+	adminUserGroup.Put("/:id/role", handler.UpdateAdminStatus)
+
 	// ComfyUI Node routes
 	comfyuiNodeGroup := app.Group("/comfyui/node")
 	comfyuiNodeGroup.Get("/", handler.GetComfyUiNodeList)

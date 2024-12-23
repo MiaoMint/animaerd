@@ -22,6 +22,10 @@ export default function MainLayou({ children }: PropsWithChildren) {
   const { user } = useAuth();
   const pathname = usePathname();
 
+  if (!user) {
+    return <></>;
+  }
+
   if (!user?.is_admin) {
     return (
       <div className="h-screen flex justify-center items-center">

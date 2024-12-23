@@ -5,6 +5,7 @@ import (
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/artwork"
 	"github.com/MiaoMint/animaerd/ent/media"
+	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
@@ -148,11 +149,35 @@ func CreateArtwork(c *fiber.Ctx) error {
 		return c.JSON(result.NewErrorResult("Media not found", 404))
 	}
 
+	// 获取 tag
+	tagIds := []int{}
+	for _, t := range *req.Tags {
+		findTag, err := entClient.Tag.Query().
+			Where(tag.NameEQ(t)).
+			Only(c.Context())
+
+		if err != nil {
+			if ent.IsNotFound(err) {
+				findTag, err = entClient.Tag.Create().
+					SetName(t).
+					SetType(tag.TypeUser).
+					Save(c.Context())
+
+			}
+			if err != nil {
+				return err
+			}
+		}
+
+		tagIds = append(tagIds, findTag.ID)
+	}
+
 	artwork, err := entClient.Artwork.Create().
 		SetNillableTitle(req.Title).
 		SetNillableDescription(req.Description).
 		SetOwnerID(int(userId)).
 		SetMediaID(media.ID).
+		AddTagIDs(tagIds...).
 		Save(c.Context())
 
 	if err != nil {

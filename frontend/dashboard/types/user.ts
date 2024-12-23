@@ -4,6 +4,9 @@ interface UserResponse {
   display_name: string;
   avatar: string;
   bio: string;
+  is_admin?: boolean;
+  create_time: string;
+  role: string;
   is_favorites_public: boolean;
   is_likes_public: boolean;
 }

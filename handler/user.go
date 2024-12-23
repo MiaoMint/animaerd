@@ -34,6 +34,8 @@ func GetUserList(c *fiber.Ctx) error {
 			Avatar:            user.Avatar,
 			Bio:               user.Bio,
 			IsAdmin:           user.Role == "admin",
+			CreateTime:        user.CreateTime.String(),
+			Role:              user.Role.String(),
 			IsFavoritesPublic: user.IsFavoritesPublic,
 			IsLikesPublic:     user.IsLikesPublic,
 		})
@@ -165,6 +167,26 @@ func UpdateUserAvatar(c *fiber.Ctx) error {
 
 	_, err = entClient.User.UpdateOneID(int(userId)).
 		SetNillableAvatar(&url).
+		Save(c.Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result.NewSuccessResult(nil))
+}
+
+func UpdateAdminStatus(c *fiber.Ctx) error {
+	userId := c.Params("id")
+	role := c.Query("role")
+	userIdInt, err := strconv.Atoi(userId)
+	if err != nil {
+		return err
+	}
+
+	entClient := ext.EntClient()
+
+	_, err = entClient.User.UpdateOneID(userIdInt).
+		SetRole(user.Role(role)).
 		Save(c.Context())
 	if err != nil {
 		return err

@@ -342,25 +342,6 @@ export default function StylesPage() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="icon"
-                render={({ field: { onChange } }) => (
-                  <FormItem>
-                    <FormLabel>Icon</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) onChange(file);
-                        }}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Update Style
