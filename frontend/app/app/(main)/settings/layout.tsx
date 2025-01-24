@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
 import { PropsWithChildren } from "react";
 import NavButton from "./_components/nav-button";
+import { useTranslations } from "next-intl";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -9,23 +10,22 @@ export const metadata: Metadata = {
 };
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
+  const t = useTranslations("Settings");
   return (
     <div className="container mx-auto p-8">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences.
-          </p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <Separator />
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar Navigation */}
           <nav className="md:w-1/4 space-y-2">
-            <NavButton href="/settings/profile">Edit Profile</NavButton>
+            <NavButton href="/settings/profile">{t("nav.profile")}</NavButton>
             <NavButton href="/settings/visibility">
-              Profile Visibility
+              {t("nav.visibility")}
             </NavButton>
           </nav>
 

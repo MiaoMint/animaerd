@@ -10,6 +10,7 @@ import (
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
 func GetArtworkList(c *fiber.Ctx) error {
@@ -153,7 +154,7 @@ func CreateArtwork(c *fiber.Ctx) error {
 	tagIds := []int{}
 	for _, t := range *req.Tags {
 		findTag, err := entClient.Tag.Query().
-			Where(tag.NameEQ(t)).
+			Where(tag.And(tag.NameEQ(t), tag.TypeEQ(tag.TypeAi))).
 			Only(c.Context())
 
 		if err != nil {
@@ -162,7 +163,6 @@ func CreateArtwork(c *fiber.Ctx) error {
 					SetName(t).
 					SetType(tag.TypeUser).
 					Save(c.Context())
-
 			}
 			if err != nil {
 				return err
@@ -183,6 +183,47 @@ func CreateArtwork(c *fiber.Ctx) error {
 	if err != nil {
 		return c.JSON(result.NewErrorResult("Failed to create image", 500))
 	}
+
+	go func() {
+		// Generate AI tags
+		l := ext.LLMClient()
+		tags, err := l.GenerateArtworkAITag(*artwork)
+		if err != nil {
+			log.Errorw("Failed to generate AI tags", err)
+		}
+
+		// Save AI tags
+		tagIds := []int{}
+		for _, t := range tags {
+			findTag, err := entClient.Tag.Query().
+				Where(tag.NameEQ(t)).
+				Only(c.Context())
+
+			if err != nil {
+				if ent.IsNotFound(err) {
+					findTag, err = entClient.Tag.Create().
+						SetName(t).
+						SetType(tag.TypeAi).
+						Save(c.Context())
+				}
+				if err != nil {
+					log.Errorw("Failed to create tag", err)
+					continue
+				}
+			}
+
+			tagIds = append(tagIds, findTag.ID)
+		}
+
+		_, err = entClient.Artwork.UpdateOneID(artwork.ID).
+			AddTagIDs(tagIds...).
+			Save(c.Context())
+
+		if err != nil {
+			log.Errorw("Failed to save AI tags", err)
+		}
+
+	}()
 
 	return c.JSON(result.NewSuccessResult(artwork.ID))
 }

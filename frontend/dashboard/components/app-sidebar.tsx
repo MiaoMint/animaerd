@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   Home,
+  LucideImage,
   MessageCircle,
   Ratio,
   Settings2,
@@ -39,9 +40,9 @@ const data = {
       icon: UsersRound,
     },
     {
-      title: "Comments",
-      url: "/comments",
-      icon: MessageCircle,
+      title: "Artworks",
+      url: "/artworks",
+      icon: LucideImage,
     },
     {
       title: "Tags",

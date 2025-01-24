@@ -23,8 +23,16 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { artworkApi } from "@/api/artwork";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const formSchema = z.object({
   title: z.string(),
@@ -36,14 +44,14 @@ export default function CreatePage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [style, setStyle] = useState("realistic");
-  const [quality, setQuality] = useState("standard");
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [hash, setHash] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadError, setIsUploadError] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  
+  const t = useTranslations("Create");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -96,8 +104,8 @@ export default function CreatePage() {
   async function handleCreateArtwork(values: z.infer<typeof formSchema>) {
     if (!hash) {
       toast({
-        title: "Error",
-        description: "Please upload an image first",
+        title: t("toast.uploadRequired.title"),
+        description: t("toast.uploadRequired.description"),
         variant: "destructive",
       });
       return;
@@ -107,21 +115,21 @@ export default function CreatePage() {
       const response = await artworkApi.createArtwork({
         title: values.title,
         description: values.description,
-        tags: values.tags.split(",").map(tag => tag.trim()),
+        tags: values.tags.split(",").map((tag) => tag.trim()),
         media_hash: hash,
       });
 
       if (response.code === 200) {
         toast({
-          title: "Success",
-          description: "Artwork created successfully",
+          title: t("toast.success.title"),
+          description: t("toast.success.description"),
         });
         router.push(`/artwork/${response.data}`);
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to create artwork",
+        title: t("toast.error.title"),
+        description: t("toast.error.description"),
         variant: "destructive",
       });
     }
@@ -136,7 +144,6 @@ export default function CreatePage() {
         ])}
       >
         <div className="w-full lg:max-w-2xl mx-auto flex-shrink-0">
-          {/* Left Column: Image Upload/Preview */}
           <motion.div
             layout="position"
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -152,7 +159,7 @@ export default function CreatePage() {
             }}
             className="space-y-4"
           >
-            <h2 className="text-xl font-semibold">Upload or Generate</h2>
+            <h2 className="text-xl font-semibold">{t("title")}</h2>
             <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg min-h-[300px] sm:min-h-[400px] bg-muted/50 relative hover:bg-muted/70 transition-colors overflow-hidden">
               {selectedImage ? (
                 <div className="relative w-full h-full">
@@ -176,16 +183,16 @@ export default function CreatePage() {
                     }}
                   >
                     <ImagePlus className="w-4 h-4 mr-2" />
-                    Change Image
+                    {t("upload.dropzone.changeButton")}
                   </Button>
                 </div>
               ) : (
                 <div className="text-center space-y-4 p-6">
                   <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
                   <div className="space-y-2">
-                    <h3 className="font-medium">Drop your image here</h3>
+                    <h3 className="font-medium">{t("upload.dropzone.title")}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Supports: JPG, PNG, WebP (Max 10MB)
+                      {t("upload.dropzone.description")}
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -201,14 +208,16 @@ export default function CreatePage() {
                       variant="secondary"
                       className="w-full sm:w-auto"
                     >
-                      <Label htmlFor="image-upload">Upload Image</Label>
+                      <Label htmlFor="image-upload">
+                        {t("upload.dropzone.uploadButton")}
+                      </Label>
                     </Button>
                     <Button
                       className="w-full sm:w-auto"
                       onClick={() => setIsGenerateDialogOpen(true)}
                     >
                       <Sparkles className="mr-2 h-4 w-4" />
-                      Generate with AI
+                      {t("upload.dropzone.generateButton")}
                     </Button>
                   </div>
                 </div>
@@ -217,24 +226,22 @@ export default function CreatePage() {
           </motion.div>
         </div>
 
-        {/* AI Generation Dialog */}
         <Dialog
           open={isGenerateDialogOpen}
           onOpenChange={setIsGenerateDialogOpen}
         >
           <DialogContent className="max-w-2xl mx-4">
             <DialogHeader>
-              <DialogTitle>Generate Image with AI</DialogTitle>
+              <DialogTitle>{t("generate.title")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Textarea
-                placeholder="Describe the image you want to generate in detail..."
+                placeholder={t("generate.prompt")}
                 className="min-h-[200px] resize-none"
               />
               <div className="space-y-4">
-                {/* Aspect Ratio Selection */}
                 <div className="space-y-2">
-                  <Label>Aspect Ratio</Label>
+                  <Label>{t("generate.aspectRatio")}</Label>
                   <div className="grid grid-cols-4 gap-2">
                     {["1:1", "4:3", "16:9", "3:4"].map((ratio) => (
                       <Button
@@ -250,9 +257,8 @@ export default function CreatePage() {
                   </div>
                 </div>
 
-                {/* Style Selection */}
                 <div className="space-y-2">
-                  <Label>Style</Label>
+                  <Label>{t("generate.style")}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {["realistic", "artistic", "anime", "3d"].map(
                       (styleOption) => (
@@ -265,42 +271,20 @@ export default function CreatePage() {
                           className="w-full"
                           onClick={() => setStyle(styleOption)}
                         >
-                          {styleOption.charAt(0).toUpperCase() +
-                            styleOption.slice(1)}
+                          {t(`generate.styles.${styleOption}`)}
                         </Button>
                       )
                     )}
-                  </div>
-                </div>
-
-                {/* Quality Selection */}
-                <div className="space-y-2">
-                  <Label>Quality</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {["draft", "standard", "hd"].map((qualityOption) => (
-                      <Button
-                        key={qualityOption}
-                        variant={
-                          quality === qualityOption ? "default" : "outline"
-                        }
-                        size="sm"
-                        className="w-full"
-                        onClick={() => setQuality(qualityOption)}
-                      >
-                        {qualityOption.charAt(0).toUpperCase() +
-                          qualityOption.slice(1)}
-                      </Button>
-                    ))}
                   </div>
                 </div>
               </div>
               <div className="space-y-2">
                 <Button className="w-full">
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Image
+                  {t("generate.generateButton")}
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  AI generation may take a few seconds
+                  {t("generate.note")}
                 </p>
               </div>
             </div>
@@ -313,19 +297,25 @@ export default function CreatePage() {
             transition={{ duration: 0.4, delay: 0.2 }}
             className="w-full space-y-4 mt-6 lg:mt-0 "
           >
-            <h2 className="text-xl font-semibold">About this Artwork</h2>
+            <h2 className="text-xl font-semibold">{t("form.title")}</h2>
             <Card className="p-6 relative">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleCreateArtwork)} className="space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(handleCreateArtwork)}
+                  className="space-y-6"
+                >
                   <div className="space-y-4">
                     <FormField
                       control={form.control}
                       name="title"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Title</FormLabel>
+                          <FormLabel>{t("form.fields.title.label")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter artwork title" {...field} />
+                            <Input
+                              placeholder={t("form.fields.title.placeholder")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -337,10 +327,10 @@ export default function CreatePage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t("form.fields.description.label")}</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Describe your artwork..."
+                              placeholder={t("form.fields.description.placeholder")}
                               className="min-h-[150px]"
                               {...field}
                             />
@@ -355,9 +345,12 @@ export default function CreatePage() {
                       name="tags"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Tags</FormLabel>
+                          <FormLabel>{t("form.fields.tags.label")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="Add tags (comma separated)" {...field} />
+                            <Input
+                              placeholder={t("form.fields.tags.placeholder")}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -372,33 +365,33 @@ export default function CreatePage() {
                     transition={{ duration: 0.3, delay: 0.4 }}
                   >
                     <Button type="submit" className="w-full" size="lg">
-                      Create Artwork
+                      {t("form.submit")}
                     </Button>
                   </motion.div>
                 </form>
               </Form>
-              
+
               {(isUploading || isUploadError) && (
                 <div className="flex flex-col items-center justify-center py-8 absolute inset-0 bg-background bg-opacity-15 z-10 rounded-lg">
                   {isUploading ? (
                     <>
                       <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       <p className="text-sm text-muted-foreground mt-2">
-                        Uploading image...
+                        {t("upload.status.uploading")}
                       </p>
                     </>
                   ) : (
                     isUploadError && (
                       <>
                         <p className="text-sm text-red-500 mb-2">
-                          Upload failed
+                          {t("upload.status.failed")}
                         </p>
                         <Button
                           variant="secondary"
                           size="sm"
                           onClick={handleRetry}
                         >
-                          Retry Upload
+                          {t("upload.status.retry")}
                         </Button>
                       </>
                     )

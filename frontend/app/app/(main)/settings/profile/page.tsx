@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { userApi } from "@/api/user";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslations } from "next-intl";
 
 const profileFormSchema = z.object({
   username: z
@@ -43,6 +44,7 @@ export default function SettingsProfilePage() {
   const { toast } = useToast();
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const { user, refetchUser } = useAuth();
+  const t = useTranslations("Settings.profile");
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -99,18 +101,21 @@ export default function SettingsProfilePage() {
 
   return (
     <div className="rounded-lg border p-8">
-      <h2 className="text-2xl font-semibold mb-6">Edit Profile</h2>
+      <h2 className="text-2xl font-semibold mb-6">{t("title")}</h2>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="username"
+            name={"username"}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>{t("fields.username.label")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your username" {...field} />
+                  <Input
+                    placeholder={t("fields.username.placeholder")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,9 +126,12 @@ export default function SettingsProfilePage() {
             name="displayName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Display Name</FormLabel>
+                <FormLabel>{t("fields.displayName.label")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your display name" {...field} />
+                  <Input
+                    placeholder={t("fields.displayName.placeholder")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -135,7 +143,7 @@ export default function SettingsProfilePage() {
             name="avatar"
             render={({ field: { value, onChange, ...field } }) => (
               <FormItem>
-                <FormLabel>Avatar</FormLabel>
+                <FormLabel>{t("fields.avatar.label")}</FormLabel>
                 <FormControl>
                   <div className="flex flex-col gap-4">
                     {avatarPreview && (
@@ -159,7 +167,9 @@ export default function SettingsProfilePage() {
                     />
                   </div>
                 </FormControl>
-                <FormDescription>Upload your avatar image</FormDescription>
+                <FormDescription>
+                  {t("fields.avatar.description")}
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -170,23 +180,21 @@ export default function SettingsProfilePage() {
             name="bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bio</FormLabel>
+                <FormLabel>{t("fields.bio.label")}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Tell us about yourself"
+                    placeholder={t("fields.bio.placeholder")}
                     className="resize-none"
                     {...field}
                   />
                 </FormControl>
-                <FormDescription>
-                  You can write up to 160 characters about yourself
-                </FormDescription>
+                <FormDescription>{t("fields.bio.description")}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit">Update profile</Button>
+          <Button type="submit">{t("submit")}</Button>
         </form>
       </Form>
     </div>

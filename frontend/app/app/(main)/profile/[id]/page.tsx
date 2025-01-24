@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { ArtworkGrid } from "@/components/artwork-grid";
+import { useTranslations } from "next-intl";
 
 export default function ProfilePage({
   params: { id },
@@ -16,6 +17,7 @@ export default function ProfilePage({
 }) {
   const { data, isLoading, error } = useQueryUserProfile({ id });
   const isOwner = useIsOwner(data?.id);
+  const t = useTranslations();
 
   if (isLoading) {
     return (
@@ -29,7 +31,7 @@ export default function ProfilePage({
   if (error) {
     return (
       <div className="h-80 justify-center items-center flex">
-        <div>Error</div>
+        <div>{t("Common.error")}</div>
       </div>
     );
   }
@@ -51,10 +53,10 @@ export default function ProfilePage({
         </p>
 
         <div className="flex gap-3">
-          <Button variant="secondary">Share</Button>
+          <Button variant="secondary">{t("Common.share")}</Button>
           {isOwner && (
             <Link href={"/settings/profile"}>
-              <Button variant="secondary">Edit Profile</Button>
+              <Button variant="secondary">{t("Profile.edit")}</Button>
             </Link>
           )}
         </div>
@@ -64,9 +66,13 @@ export default function ProfilePage({
         <Tabs defaultValue="artworks" className="w-full">
           <div className="flex justify-center items-center">
             <TabsList>
-              <TabsTrigger value="artworks">Artworks</TabsTrigger>
-              <TabsTrigger value="comments">Comment Generate</TabsTrigger>
-              <TabsTrigger value="likes">Likes</TabsTrigger>
+              <TabsTrigger value="artworks">
+                {t("Profile.tabs.artworks")}
+              </TabsTrigger>
+              <TabsTrigger value="comments">
+                {t("Profile.tabs.comments")}
+              </TabsTrigger>
+              <TabsTrigger value="likes">{t("Profile.tabs.likes")}</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="artworks">

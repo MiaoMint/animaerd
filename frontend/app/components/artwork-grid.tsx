@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import ArtworkGridTile from "./artwork-grid-tile";
+import { useTranslations } from "next-intl";
 
 interface ArtworkGridProps {
   username?: string;
@@ -22,6 +23,7 @@ export function ArtworkGrid({ username, isLiked }: ArtworkGridProps) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const t = useTranslations();
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -83,7 +85,7 @@ export function ArtworkGrid({ username, isLiked }: ArtworkGridProps) {
         )}
         {!hasMore && !loading && (
           <div className="flex justify-center py-4">
-            <p className="text-gray-500">No more artworks to show</p>
+            <p className="text-gray-500">{t("Common.no-more")}</p>
           </div>
         )}
       </div>

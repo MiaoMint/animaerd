@@ -16,6 +16,8 @@ type Config struct {
 	RedisHost                  string `yaml:"redis_host" env:"REDIS_HOST"`
 	RedisPort                  int    `yaml:"redis_port" env:"REDIS_PORT"`
 	RedisPassword              string `yaml:"redis_password" env:"REDIS_PASSWORD"`
+	OpenAiApiKey               string `yaml:"open_ai_api_key" env:"OPEN_AI_API_KEY"`
+	OpenAiBaseUrl              string `yaml:"open_ai_base_url" env:"OPEN_AI_BASE_URL"`
 	R2S3AccountID              string `yaml:"r2s3_account_id" env:"R2S3_ACCOUNT_ID"`
 	R2S3AccessKeyID            string `yaml:"r2s3_access_key_id" env:"R2S3_ACCESS_KEY_ID"`
 	R2S3AccessSecretKey        string `yaml:"r2s3_access_secret_key" env:"R2S3_ACCESS_SECRET_KEY"`

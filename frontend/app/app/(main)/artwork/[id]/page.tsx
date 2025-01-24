@@ -20,6 +20,7 @@ import Link from "next/link";
 import { Comments } from "@/components/comments";
 import ArtworkLoading from "./_components/artwok-loading";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 export default function ArtworkPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
   const { toast } = useToast();
   const [isPanelVisible, setIsPanelVisible] = useState(true);
   const [bgColor, setBgColor] = useState("");
+  const t = useTranslations();
 
   const {
     data: artwork,
@@ -97,14 +99,13 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
       }
 
       setIsLiked(!isLiked);
-      refetch()
+      refetch();
       toast({
-        title: isLiked ? "Removed from favorites" : "Added to favorites",
+        title: isLiked ? t("Artwork.toast.unlike") : t("Artwork.toast.like"),
       });
     } catch (error) {
       toast({
-        title: "Failed to like artwork",
-        description: "Please try again later",
+        title: t("Common.error"),
       });
       setIsLiked(!isLiked);
     }
@@ -123,12 +124,11 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       toast({
-        title: "Download started",
-        description: "success",
+        title: t("Artwork.toast.download"),
       });
     } catch (error) {
       toast({
-        title: "Failed to download artwork",
+        title: t("Common.error"),
         description: `Unknown error: ${error}`,
       });
     }
@@ -145,13 +145,12 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
       } else {
         await navigator.clipboard.writeText(window.location.href);
         toast({
-          title: "Link copied to clipboard",
-          description: "success",
+          title: t("Artwork.toast.share"),
         });
       }
     } catch (error) {
       toast({
-        title: "Failed to share artwork",
+        title: t("Common.error"),
         description: `Unknown error: ${error}`,
       });
     }
@@ -164,7 +163,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
   if (!artwork) {
     return (
       <div className="h-80 justify-center items-center flex">
-        <div>Error</div>
+        <div>{t("Common.error")}</div>
       </div>
     );
   }
@@ -175,7 +174,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
         <div className="flex justify-between">
           <Button onClick={() => router.back()} className="mb-6">
             <ArrowLeftIcon className="w-5 h-5 mr-2" />
-            Back
+            {t("Common.back")}
           </Button>
 
           <Button
@@ -223,7 +222,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
                     variant="secondary"
                     onClick={() => setIsExpanded(true)}
                   >
-                    Show Full Image
+                    {t("Artwork.show-full-image")}
                   </Button>
                 </div>
               )}
@@ -286,7 +285,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-4">
                   <span className="flex items-center">
                     <HeartIcon className="w-4 h-4 mr-1" />
-                    {artwork.likes || 0} likes
+                    {artwork.likes || 0} {t("Artwork.likes")}
                   </span>
                   <span>•</span>
                   <span>
@@ -295,7 +294,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
                 </div>
                 <details>
                   <summary className="font-medium cursor-pointer">
-                    View Artwork Details
+                    {t("Artwork.details")}
                   </summary>
                   <div className="mt-4 space-y-4">
                     <p className="text-sm text-muted-foreground">
@@ -321,7 +320,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
         </div>
 
         <div className="mt-12">
-          <h2 className="text-xl font-semibold mb-6">Related Artworks</h2>
+          <h2 className="text-xl font-semibold mb-6">{t("Artwork.related")}</h2>
           <ArtworkGrid />
         </div>
       </div>

@@ -1,0 +1,221 @@
+{
+  "Nav": {
+    "title": "Animaerd",
+    "home": "Home",
+    "create": "Create",
+    "search": {
+      "placeholder": "Search something here... (Press / to focus)"
+    },
+    "menu": {
+      "profile": "Profile",
+      "settings": "Settings",
+      "dashboard": "Dashboard",
+      "userMenu": {
+        "loginButton": "Login",
+        "userLabel": "User Menu"
+      }
+    }
+  },
+  "Common": {
+    "loading": "Loading...",
+    "back": "Back",
+    "error": "Error",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "share": "Share",
+    "more": "More",
+    "settings": "Settings",
+    "logout": "Logout",
+    "language": "Language",
+    "theme": "Theme",
+    "auth": {
+      "title": "Welcome to Animaerd",
+      "description": "Sign in to start your AI art journey",
+      "continueWithMicrosoft": "Continue with Microsoft",
+      "continueWithGoogle": "Continue with Google",
+      "continueWithGitHub": "Continue with GitHub",
+      "signInTerms": "By signing in, you agree to our Terms of Service and Privacy Policy"
+    },
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "Auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "welcome": "Welcome back",
+    "continueWith": "Continue with {provider}",
+    "page": {
+      "title": "Welcome to Animaerd",
+      "description": "Join our creative community and start your AI art journey!",
+      "providers": {
+        "github": "GitHub",
+        "google": "Google",
+        "microsoft": "Microsoft"
+      }
+    },
+    "initialSetup": {
+      "title": "Welcome to Animaerd",
+      "description": "Let's set up your profile",
+      "username": {
+        "label": "Username",
+        "description": "This will be your unique identifier",
+        "placeholder": "Choose a username",
+        "validation": {
+          "required": "Username is required",
+          "minLength": "Username must be at least 3 characters",
+          "maxLength": "Username must be less than 20 characters",
+          "format": "Username can only contain letters, numbers, - and _"
+        }
+      },
+      "submit": "Get Started",
+      "toast": {
+        "success": {
+          "title": "Username set successfully",
+          "description": "Welcome to Animaerd!"
+        },
+        "error": {
+          "title": "Error",
+          "description": "Failed to set username"
+        }
+      }
+    }
+  },
+  "Create": {
+    "title": "Upload or Generate",
+    "upload": {
+      "dropzone": {
+        "title": "Drop your image here",
+        "description": "Supports: JPG, PNG, WebP (Max 10MB)",
+        "uploadButton": "Upload Image",
+        "generateButton": "Generate with AI",
+        "changeButton": "Change Image"
+      },
+      "status": {
+        "uploading": "Uploading image...",
+        "failed": "Upload failed",
+        "retry": "Retry Upload"
+      }
+    },
+    "generate": {
+      "title": "Generate Image with AI",
+      "prompt": "Describe the image you want to generate in detail...",
+      "aspectRatio": "Aspect Ratio",
+      "style": "Style",
+      "generateButton": "Generate Image",
+      "note": "AI generation may take a few seconds",
+      "styles": {
+        "realistic": "Realistic",
+        "artistic": "Artistic",
+        "anime": "Anime",
+        "3d": "3D"
+      }
+    },
+    "form": {
+      "title": "About this Artwork",
+      "fields": {
+        "title": {
+          "label": "Title",
+          "placeholder": "Enter artwork title"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Describe your artwork..."
+        },
+        "tags": {
+          "label": "Tags",
+          "placeholder": "Add tags (comma separated)"
+        }
+      },
+      "submit": "Create Artwork"
+    },
+    "toast": {
+      "uploadRequired": {
+        "title": "Error",
+        "description": "Please upload an image first"
+      },
+      "success": {
+        "title": "Success",
+        "description": "Artwork created successfully"
+      },
+      "error": {
+        "title": "Error",
+        "description": "Failed to create artwork"
+      }
+    }
+  },
+  "Settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account settings and preferences.",
+    "nav": {
+      "profile": "Edit Profile",
+      "visibility": "Profile Visibility"
+    },
+    "profile": {
+      "title": "Edit Profile",
+      "fields": {
+        "username": {
+          "label": "Username",
+          "placeholder": "Enter your username"
+        },
+        "displayName": {
+          "label": "Display Name",
+          "placeholder": "Enter your display name"
+        },
+        "avatar": {
+          "label": "Avatar",
+          "description": "Upload your avatar image"
+        },
+        "bio": {
+          "label": "Bio",
+          "placeholder": "Tell us about yourself...",
+          "description": "You can write up to 160 characters about yourself"
+        }
+      },
+      "submit": "Update Profile"
+    },
+    "visibility": {
+      "title": "Profile Visibility",
+      "fields": {
+        "like": {
+          "label": "Public Likes",
+          "description": "Allow others to see your liked artworks"
+        }
+      },
+      "submit": "Update visibility settings"
+    }
+  },
+  "Artwork": {
+    "related": "Related Artworks",
+    "show-full-image": "Show Full Image",
+    "likes": "Likes",
+    "details": "Details",
+    "toast": {
+      "like": "Artwork liked",
+      "unlike": "Artwork unliked",
+      "download": "Downloading image...",
+      "share": "Link copied to clipboard"
+    }
+  },
+  "Comments": {
+    "title": "Comments",
+    "placeholder": "Add a comment...",
+    "reply": "Reply",
+    "reply-to": "Reply to {username} ...",
+    "sign-in-to-comment": "Please sign in to comment"
+  },
+  "Profile": {
+    "edit": "Edit Profile",
+    "tabs": {
+      "artworks": "Artworks",
+      "comments": "Comment Generate",
+      "likes": "Likes"
+    }
+  }
+}

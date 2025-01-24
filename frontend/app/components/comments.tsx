@@ -16,6 +16,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Laugh } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslations } from "next-intl";
 
 interface CommentsProps {
   artworkId: number;
@@ -29,6 +30,7 @@ export function Comments({ artworkId }: CommentsProps) {
   );
   const { toast } = useToast();
   const { user } = useAuth();
+  const t = useTranslations("Comments");
 
   useEffect(() => {
     fetchComments();
@@ -71,7 +73,7 @@ export function Comments({ artworkId }: CommentsProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmitComment();
     }
@@ -79,7 +81,7 @@ export function Comments({ artworkId }: CommentsProps) {
 
   return (
     <div className="bg-card p-6 rounded-xl shadow-sm border border-border/50 ">
-      <h2 className="text-lg font-semibold mb-6">Comments</h2>
+      <h2 className="text-lg font-semibold mb-6">{t("title")}</h2>
 
       {user ? (
         <div className="flex items-center space-x-4 mb-6">
@@ -93,7 +95,9 @@ export function Comments({ artworkId }: CommentsProps) {
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={
-                replyTo ? `Reply to ${replyTo.author}...` : "Add a comment..."
+                replyTo
+                  ? t("reply-to", { username: replyTo.author })
+                  : t("placeholder")
               }
               className="flex-1 min-h-[40px] max-h-[120px] rounded-full px-4 py-2 text-sm border border-border/50 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
               rows={1}
@@ -129,7 +133,7 @@ export function Comments({ artworkId }: CommentsProps) {
         </div>
       ) : (
         <div className="text-sm text-muted-foreground mb-6">
-          Please sign in to comment
+          {t("sign-in-to-comment")}
         </div>
       )}
       <div className="max-h-[calc(50vh)] overflow-auto">
@@ -162,7 +166,7 @@ export function Comments({ artworkId }: CommentsProps) {
                     }
                     className="text-xs text-primary hover:text-primary/80 mt-2"
                   >
-                    Reply
+                    {t("reply")}
                   </button>
                 )}
               </div>

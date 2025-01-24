@@ -1,0 +1,222 @@
+{
+  "Nav": {
+    "title": "Animaerd",
+    "home": "首页",
+    "create": "创建",
+    "search": {
+      "placeholder": "搜索内容... (按 / 键聚焦)"
+    },
+    "menu": {
+      "profile": "个人主页",
+      "settings": "设置",
+      "dashboard": "管理后台",
+      "userMenu": {
+        "loginButton": "登录",
+        "userLabel": "用户菜单"
+      }
+    }
+  },
+  "Common": {
+    "loading": "加载中...",
+    "back": "返回",
+    "error": "错误",
+    "retry": "重试",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "share": "分享",
+    "more": "更多",
+    "settings": "设置",
+    "logout": "退出登录",
+    "language": "语言",
+    "theme": "主题",
+    "no-more": "没有更多了",
+    "auth": {
+      "title": "欢迎来到 Animaerd",
+      "description": "登录以开始你的 AI 艺术之旅",
+      "continueWithMicrosoft": "使用微软账号继续",
+      "continueWithGoogle": "使用谷歌账号继续",
+      "continueWithGitHub": "使用 GitHub 账号继续",
+      "signInTerms": "登录即表示您同意我们的服务条款和隐私政策"
+    },
+    "themes": {
+      "light": "浅色",
+      "dark": "深色",
+      "system": "跟随系统"
+    }
+  },
+  "Auth": {
+    "login": "登录",
+    "signup": "注册",
+    "logout": "退出登录",
+    "welcome": "欢迎回来",
+    "continueWith": "使用{provider}继续",
+    "page": {
+      "title": "欢迎来到 Animaerd",
+      "description": "加入我们的创作社区，开启你的 AI 艺术之旅！",
+      "providers": {
+        "github": "GitHub",
+        "google": "谷歌",
+        "microsoft": "微软"
+      }
+    },
+    "initialSetup": {
+      "title": "欢迎来到 Animaerd",
+      "description": "让我们设置你的个人资料",
+      "username": {
+        "label": "用户名",
+        "description": "这将是你的唯一标识符",
+        "placeholder": "选择一个用户名",
+        "validation": {
+          "required": "用户名是必填的",
+          "minLength": "用户名至少需要3个字符",
+          "maxLength": "用户名不能超过20个字符",
+          "format": "用户名只能包含字母、数字、- 和 _"
+        }
+      },
+      "submit": "开始使用",
+      "toast": {
+        "success": {
+          "title": "用户名设置成功",
+          "description": "欢迎来到 Animaerd！"
+        },
+        "error": {
+          "title": "错误",
+          "description": "设置用户名失败"
+        }
+      }
+    }
+  },
+  "Create": {
+    "title": "上传或生成",
+    "upload": {
+      "dropzone": {
+        "title": "拖放图片到这里",
+        "description": "支持: JPG, PNG, WebP (最大 10MB)",
+        "uploadButton": "上传图片",
+        "generateButton": "AI 生成",
+        "changeButton": "更换图片"
+      },
+      "status": {
+        "uploading": "正在上传图片...",
+        "failed": "上传失败",
+        "retry": "重试上传"
+      }
+    },
+    "generate": {
+      "title": "AI 生成图片",
+      "prompt": "详细描述你想要生成的图片...",
+      "aspectRatio": "宽高比",
+      "style": "风格",
+      "generateButton": "生成图片",
+      "note": "AI 生成可能需要几秒钟",
+      "styles": {
+        "realistic": "写实",
+        "artistic": "艺术",
+        "anime": "动漫",
+        "3d": "3D"
+      }
+    },
+    "form": {
+      "title": "作品信息",
+      "fields": {
+        "title": {
+          "label": "标题",
+          "placeholder": "输入作品标题"
+        },
+        "description": {
+          "label": "描述",
+          "placeholder": "描述你的作品..."
+        },
+        "tags": {
+          "label": "标签",
+          "placeholder": "添加标签（用逗号分隔）"
+        }
+      },
+      "submit": "创建作品"
+    },
+    "toast": {
+      "uploadRequired": {
+        "title": "错误",
+        "description": "请先上传图片"
+      },
+      "success": {
+        "title": "成功",
+        "description": "作品创建成功"
+      },
+      "error": {
+        "title": "错误",
+        "description": "作品创建失败"
+      }
+    }
+  },
+  "Settings": {
+    "title": "设置",
+    "subtitle": "管理你的账户设置和偏好",
+    "nav": {
+      "profile": "编辑个人资料",
+      "visibility": "个人资料可见性"
+    },
+    "profile": {
+      "title": "编辑个人资料",
+      "fields": {
+        "username": {
+          "label": "用户名",
+          "placeholder": "输入用户名"
+        },
+        "displayName": {
+          "label": "显示名称",
+          "placeholder": "输入显示名称"
+        },
+        "avatar": {
+          "label": "头像",
+          "description": "上传你的头像"
+        },
+        "bio": {
+          "label": "个人简介",
+          "placeholder": "告诉我关于你自己",
+          "description": "你可以写最多 160 个字符的个人简介"
+        }
+      },
+      "submit": "更新个人资料"
+    },
+    "visibility": {
+      "title": "个人资料可见性",
+      "fields": {
+        "like": {
+          "label": "喜欢的作品",
+          "description": "允许其他用户查看你喜欢的作品"
+        }
+      },
+      "submit": "更新可见性"
+    }
+  },
+  "Artwork": {
+    "related": "相关作品",
+    "show-full-image": "查看完整图片",
+    "likes": "喜欢",
+    "details": "详情",
+    "toast": {
+      "like": "作品已喜欢",
+      "unlike": "作品已取消喜欢",
+      "download": "正在下载图片...",
+      "share": "链接已复制到剪贴板"
+    }
+  },
+  "Comments": {
+    "title": "评论",
+    "placeholder": "添加评论...",
+    "reply": "回复",
+    "reply-to": "回复给 {username}",
+    "sign-in-to-comment": "请登录以评论"
+  },
+  "Profile": {
+    "edit": "编辑个人资料",
+    "tabs": {
+      "artworks": "艺术品",
+      "comments": "评论生成的",
+      "likes": "喜欢的艺术品"
+    }
+  }
+}

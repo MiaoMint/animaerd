@@ -2,7 +2,7 @@
 
 import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "./ui/button";
 import { ChevronDown, User, Menu } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -21,11 +21,14 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { tokenStorage } from "@/utils/token";
+import { useLocale, useTranslations } from "next-intl";
+import { setUserLocale } from "@/services/locale";
 
 export default function NavBar({ className }: { className?: string }) {
   const router = useRouter();
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const t = useTranslations("Nav");
 
   return (
     <nav
@@ -35,7 +38,7 @@ export default function NavBar({ className }: { className?: string }) {
       ])}
     >
       <h1 className="text-xl md:text-2xl font-bold">
-        Animaerd
+        {t("title")}
         <Button
           variant="ghost"
           size="icon"
@@ -46,9 +49,9 @@ export default function NavBar({ className }: { className?: string }) {
         </Button>
       </h1>
 
-      <div className="hidden md:flex gap-2">
-        <NavButton path="/">Home</NavButton>
-        <NavButton path="/create">Create</NavButton>
+      <div className="hidden md:flex gap-2 flex-shrink-0">
+        <NavButton path="/">{t("home")}</NavButton>
+        <NavButton path="/create">{t("create")}</NavButton>
       </div>
 
       <div className="w-full hidden md:block">
@@ -62,6 +65,7 @@ export default function NavBar({ className }: { className?: string }) {
             className="relative size-8 md:size-10 rounded-full"
             size="icon"
             onClick={() => router.push(`/profile/${user.username ?? user.id}`)}
+            aria-label={t("menu.userMenu.userLabel")}
           >
             <Avatar className="size-8 md:size-10">
               <AvatarImage src={user.avatar} alt={user.display_name} />
@@ -74,6 +78,7 @@ export default function NavBar({ className }: { className?: string }) {
             className="border-none rounded-full"
             variant="outline"
             size="icon"
+            aria-label={t("menu.userMenu.loginButton")}
           >
             <User />
           </Button>
@@ -83,8 +88,8 @@ export default function NavBar({ className }: { className?: string }) {
 
       {isMenuOpen && (
         <div className="absolute top-16 left-0 right-0 bg-background border-b md:hidden p-4 flex flex-col gap-2 z-50">
-          <NavButton path="/">Home</NavButton>
-          <NavButton path="/create">Create</NavButton>
+          <NavButton path="/">{t("home")}</NavButton>
+          <NavButton path="/create">{t("create")}</NavButton>
           <SearchBox />
         </div>
       )}
@@ -114,7 +119,7 @@ function NavButton({
         }
       }}
       className={clsx([
-        "px-4 py-2 rounded-3xl hover:bg-card transition-all active:scale-95 ",
+        "px-4 py-2 rounded-3xl hover:bg-card transition-all active:scale-95 flex-shrink-0",
         isActive && "bg-card",
       ])}
     >
@@ -125,6 +130,7 @@ function NavButton({
 
 function SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations("Nav");
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -145,7 +151,7 @@ function SearchBox() {
     <input
       ref={inputRef}
       className="size-full h-12 rounded-full px-4 bg-card/30 hover:bg-card/90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      placeholder="Search something here... (Press / to focus)"
+      placeholder={t("search.placeholder")}
     ></input>
   );
 }
@@ -154,6 +160,15 @@ function MoreButton() {
   const { setTheme } = useTheme();
   const { user, logout } = useAuth();
   const router = useRouter();
+  const [, startTransition] = useTransition();
+  const t = useTranslations();
+  const navT = useTranslations("Nav");
+
+  function onChange(value: string) {
+    startTransition(() => {
+      setUserLocale(value);
+    });
+  }
 
   const handleToAdminDashboard = () => {
     const token = tokenStorage.get();
@@ -171,39 +186,59 @@ function MoreButton() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel> {user.display_name} </DropdownMenuLabel>
+          <DropdownMenuLabel aria-label={t("menu.userMenu.userLabel")}>
+            {" "}
+            {user.display_name}{" "}
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => router.push(`/profile/${user.username ?? user.id}`)}
           >
-            Profile
+            {navT("menu.profile")}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push("/settings/profile")}>
-            Settings
+            {navT("menu.settings")}
           </DropdownMenuItem>
           {user.is_admin && (
             <DropdownMenuItem onClick={handleToAdminDashboard}>
-              Dashboard
+              {navT("menu.dashboard")}
             </DropdownMenuItem>
           )}
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Theme</DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger>
+              {t("Common.language")}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => onChange("en")}>
+                  English
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onChange("zh")}>
+                  简体中文
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>{t("Common.theme")}</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem onClick={() => setTheme("light")}>
-                  Light
+                  {t("Common.themes.light")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("dark")}>
-                  Dark
+                  {t("Common.themes.dark")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("system")}>
-                  System
+                  {t("Common.themes.system")}
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => logout()}>Logout</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => logout()}>
+            {t("Common.logout")}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -217,15 +252,37 @@ function MoreButton() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
-        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            {t("Common.language")}
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => onChange("en")}>
+                English
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onChange("zh")}>
+                简体中文
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>{t("Common.theme")}</DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => setTheme("light")}>
+                {t("Common.themes.light")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")}>
+                {t("Common.themes.dark")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("system")}>
+                {t("Common.themes.system")}
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
   );

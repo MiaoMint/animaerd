@@ -7,6 +7,7 @@ import { MasonryInfiniteGrid } from "@egjs/react-infinitegrid";
 import { atom, useAtom } from "jotai";
 import { Loader } from "lucide-react";
 import { MotionConfig } from "motion/react";
+import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [hasMore, setHasMore] = useState(true);
   const [scrollOffset, setScrollOffset] = useAtom(homeScrollOffsetAtom);
   const pathname = usePathname();
+  const t = useTranslations();
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -101,7 +103,7 @@ export default function HomePage() {
         )}
         {!hasMore && !loading && (
           <div className="flex justify-center py-4">
-            <p className="text-gray-500">No more artworks to show</p>
+            <p className="text-gray-500">{t("Common.no-more")}</p>
           </div>
         )}
       </div>

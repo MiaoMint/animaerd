@@ -53,6 +53,8 @@ func InitRouter(app *fiber.App) {
 	artworkGroup.Get("/:id", handler.GetArtwork)
 	artworkGroup.Get("/:id/comments", handler.GetArtworkComments)
 	artworkGroup.Post("/media", handler.UploadMedia)
+	// 根据 media 获取 相关信息
+	artworkGroup.Post("/media/{id}/info", handler.GenerateMediaMetadata)
 	artworkGroup.Post("/", handler.CreateArtwork)
 	// 评论
 	artworkGroup.Post("/:id/comment", handler.CreateArtworkComment)
@@ -95,17 +97,20 @@ func InitRouter(app *fiber.App) {
 	comfyuiNodeGroup.Put("/:id", handler.UpdateComfyUiNode)
 	comfyuiNodeGroup.Delete("/:id", handler.DeleteComfyUiNode)
 
+	// 生成的大小比例
 	aspectRatioGroup.Get("/:id", handler.GetAspectRatio)
 	aspectRatioGroup.Post("/", handler.CreateAspectRatio)
 	aspectRatioGroup.Put("/:id", handler.UpdateAspectRatio)
 	aspectRatioGroup.Delete("/:id", handler.DeleteAspectRatio)
 
+	// 风格
 	styleGroup.Get("/:id", handler.GetStyle)
 	styleGroup.Post("/", handler.CreateStyle)
 	styleGroup.Put("/:id", handler.UpdateStyle)
 	styleGroup.Put("/:id/icon", handler.UpdateStyleIcon)
 	styleGroup.Delete("/:id", handler.DeleteStyle)
 
+	// 工作流
 	workflowGroup := app.Group("/workflow")
 	workflowGroup.Get("/", handler.GetWorkflowList)
 	workflowGroup.Get("/:id", handler.GetWorkflow)

@@ -7,9 +7,11 @@ import (
 
 	"github.com/MiaoMint/animaerd/config"
 	"github.com/MiaoMint/animaerd/ent"
+	"github.com/MiaoMint/animaerd/pkg/llm"
 	"github.com/MiaoMint/animaerd/pkg/storage"
 	"github.com/gofiber/storage/redis/v3"
 	_ "github.com/lib/pq"
+	"github.com/sashabaranov/go-openai"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
@@ -27,6 +29,7 @@ var (
 	redisStore    *redis.Storage
 	oauthConf     oauthConfig
 	storageClient *storage.StorageClient
+	llmClient     *llm.LLM
 )
 
 func EntClient() *ent.Client {
@@ -46,6 +49,22 @@ func EntClient() *ent.Client {
 	entClient = client
 
 	return client
+}
+
+func LLMClient() *llm.LLM {
+	if llmClient != nil {
+		return llmClient
+	}
+	c := openai.DefaultConfig(config.C.OpenAiApiKey)
+
+	if config.C.OpenAiBaseUrl != "" {
+		c.BaseURL = config.C.OpenAiBaseUrl
+	}
+
+	client := openai.NewClientWithConfig(c)
+	llmClient = llm.NewLLM(client)
+
+	return llmClient
 }
 
 func RedisStore() *redis.Storage {
