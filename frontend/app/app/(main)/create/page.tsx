@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, ImagePlus, Sparkles, Loader2 } from "lucide-react";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import MD5 from "crypto-js/md5";
@@ -48,9 +48,11 @@ export default function CreatePage() {
   const [hash, setHash] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadError, setIsUploadError] = useState(false);
+  const [isGenerateMetadata, setIsGenerateMetadata] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const t = useTranslations("Create");
+  const showLoading = isUploading || isGenerateMetadata;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -92,6 +94,29 @@ export default function CreatePage() {
       setIsUploading(false);
     }
   }
+
+  useEffect(() => {
+    async function getMetadata() {
+      setIsGenerateMetadata(true);
+      // 获取 metadata
+      try {
+        const metadataResponse = await mediaApi.getMediaMetadata(hash!);
+        if (metadataResponse.code == 200) {
+          form.setValue("title", metadataResponse.data.title);
+          form.setValue("description", metadataResponse.data.description);
+          form.setValue("tags", metadataResponse.data.tags.join(","));
+        }
+      } catch (error) {
+        console.error("Error getting metadata:", error);
+      } finally {
+        setIsGenerateMetadata(false);
+      }
+    }
+
+    if (hash) {
+      getMetadata();
+    }
+  }, [hash]);
 
   const handleRetry = () => {
     setIsUploadError(false);
@@ -190,7 +215,9 @@ export default function CreatePage() {
                 <div className="text-center space-y-4 p-6">
                   <Upload className="w-12 h-12 mx-auto text-muted-foreground" />
                   <div className="space-y-2">
-                    <h3 className="font-medium">{t("upload.dropzone.title")}</h3>
+                    <h3 className="font-medium">
+                      {t("upload.dropzone.title")}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
                       {t("upload.dropzone.description")}
                     </p>
@@ -327,10 +354,14 @@ export default function CreatePage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("form.fields.description.label")}</FormLabel>
+                          <FormLabel>
+                            {t("form.fields.description.label")}
+                          </FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder={t("form.fields.description.placeholder")}
+                              placeholder={t(
+                                "form.fields.description.placeholder"
+                              )}
                               className="min-h-[150px]"
                               {...field}
                             />
@@ -371,13 +402,14 @@ export default function CreatePage() {
                 </form>
               </Form>
 
-              {(isUploading || isUploadError) && (
+              {(showLoading || isUploadError) && (
                 <div className="flex flex-col items-center justify-center py-8 absolute inset-0 bg-background bg-opacity-15 z-10 rounded-lg">
-                  {isUploading ? (
+                  {showLoading ? (
                     <>
                       <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       <p className="text-sm text-muted-foreground mt-2">
-                        {t("upload.status.uploading")}
+                        {isUploading && t("upload.status.uploading")}
+                        {isGenerateMetadata && t("upload.status.metadata")}
                       </p>
                     </>
                   ) : (

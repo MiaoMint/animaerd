@@ -100,6 +100,7 @@
       },
       "status": {
         "uploading": "正在上传图片...",
+        "metadata" : "正在生成图片信息...",
         "failed": "上传失败",
         "retry": "重试上传"
       }

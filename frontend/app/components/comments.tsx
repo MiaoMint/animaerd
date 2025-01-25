@@ -9,9 +9,6 @@ import EmojiPicker, { SkinTonePickerLocation, Theme } from "emoji-picker-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Laugh } from "lucide-react";
@@ -31,6 +28,7 @@ export function Comments({ artworkId }: CommentsProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const t = useTranslations("Comments");
+  const commonT = useTranslations("Common");
 
   useEffect(() => {
     fetchComments();
@@ -109,7 +107,7 @@ export function Comments({ artworkId }: CommentsProps) {
                   size="sm"
                   onClick={() => setReplyTo(null)}
                 >
-                  Cancel
+                  {commonT("cancel")}
                 </Button>
               )}
             </div>
@@ -202,7 +200,7 @@ export function Comments({ artworkId }: CommentsProps) {
                           }
                           className="text-xs text-primary hover:text-primary/80 mt-2"
                         >
-                          Reply
+                          {t("reply")}
                         </button>
                       )}
                     </div>

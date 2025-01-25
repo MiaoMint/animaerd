@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/MiaoMint/animaerd/dto"
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/artwork"
@@ -8,6 +10,7 @@ import (
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/user"
 	"github.com/MiaoMint/animaerd/ext"
+	"github.com/MiaoMint/animaerd/pkg/llm"
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
@@ -90,7 +93,9 @@ func GetArtwork(c *fiber.Ctx) error {
 	artwork, err := entClient.Artwork.Query().
 		Where(artwork.IDEQ(artworkId)).
 		WithMedia().
-		WithTags().
+		WithTags(func(tq *ent.TagQuery) {
+			tq.Where(tag.TypeEQ(tag.TypeUser))
+		}).
 		WithOwner().
 		First(c.Context())
 
@@ -154,7 +159,7 @@ func CreateArtwork(c *fiber.Ctx) error {
 	tagIds := []int{}
 	for _, t := range *req.Tags {
 		findTag, err := entClient.Tag.Query().
-			Where(tag.And(tag.NameEQ(t), tag.TypeEQ(tag.TypeAi))).
+			Where(tag.And(tag.NameEQ(t), tag.TypeEQ(tag.TypeUser))).
 			Only(c.Context())
 
 		if err != nil {
@@ -187,24 +192,29 @@ func CreateArtwork(c *fiber.Ctx) error {
 	go func() {
 		// Generate AI tags
 		l := ext.LLMClient()
-		tags, err := l.GenerateArtworkAITag(*artwork)
+		tags, err := l.GenerateArtworkAITag(media.URL, llm.MediaMetadata{
+			Title:       artwork.Title,
+			Description: artwork.Description,
+			Tags:        *req.Tags,
+		})
 		if err != nil {
 			log.Errorw("Failed to generate AI tags", err)
+			return
 		}
 
 		// Save AI tags
 		tagIds := []int{}
 		for _, t := range tags {
 			findTag, err := entClient.Tag.Query().
-				Where(tag.NameEQ(t)).
-				Only(c.Context())
+				Where(tag.And(tag.NameEQ(t), tag.TypeEQ(tag.TypeAi))).
+				Only(context.Background())
 
 			if err != nil {
 				if ent.IsNotFound(err) {
 					findTag, err = entClient.Tag.Create().
 						SetName(t).
 						SetType(tag.TypeAi).
-						Save(c.Context())
+						Save(context.Background())
 				}
 				if err != nil {
 					log.Errorw("Failed to create tag", err)
@@ -217,7 +227,7 @@ func CreateArtwork(c *fiber.Ctx) error {
 
 		_, err = entClient.Artwork.UpdateOneID(artwork.ID).
 			AddTagIDs(tagIds...).
-			Save(c.Context())
+			Save(context.Background())
 
 		if err != nil {
 			log.Errorw("Failed to save AI tags", err)

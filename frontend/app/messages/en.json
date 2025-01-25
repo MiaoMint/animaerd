@@ -99,6 +99,7 @@
       },
       "status": {
         "uploading": "Uploading image...",
+        "metadata": "Generate image metadata...",
         "failed": "Upload failed",
         "retry": "Retry Upload"
       }

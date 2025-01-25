@@ -54,7 +54,7 @@ func InitRouter(app *fiber.App) {
 	artworkGroup.Get("/:id/comments", handler.GetArtworkComments)
 	artworkGroup.Post("/media", handler.UploadMedia)
 	// 根据 media 获取 相关信息
-	artworkGroup.Post("/media/{id}/info", handler.GenerateMediaMetadata)
+	artworkGroup.Post("/media/:hash/info", handler.GenerateMediaMetadata)
 	artworkGroup.Post("/", handler.CreateArtwork)
 	// 评论
 	artworkGroup.Post("/:id/comment", handler.CreateArtworkComment)

@@ -1,4 +1,5 @@
 import { BaseResponse } from "@/types/base";
+import { CreateMediaResponse, MediaMetadata } from "@/types/media";
 import { http } from "@/utils/request";
 
 export const mediaApi = {
@@ -14,5 +15,10 @@ export const mediaApi = {
       `/artwork/media`,
       formData
     );
+  },
+
+  // 获取 media 的 matadata
+  getMediaMetadata: (hash: string) => {
+    return http.post<BaseResponse<MediaMetadata>>(`/artwork/media/${hash}/info`);
   },
 };
