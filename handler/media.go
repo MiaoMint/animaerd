@@ -2,11 +2,12 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
-	"net/http"
+	"io"
 	"path"
 	"strings"
 	"time"
@@ -48,57 +49,66 @@ func UploadMedia(c *fiber.Ctx) error {
 	}
 
 	file, err := fileHeader.Open()
+
 	if err != nil {
 		return err
 	}
 
-	size := fileHeader.Size
-	buffer := make([]byte, size)
-	file.Read(buffer)
-	fileBytes := bytes.NewReader(buffer)
-	fileType := http.DetectContentType(buffer)
+	fileBytes, err := io.ReadAll(file)
+	// 上传文件
+	resp, err := UploadImage(fileBytes, fileHeader.Header.Get("Content-Type"), fileHeader.Filename)
+	if err != nil {
+		return err
+	}
+	return c.JSON(result.NewSuccessResult(resp))
+}
 
-	if !strings.HasPrefix(fileType, "image/") {
-		return c.JSON(result.NewErrorResult("file type not allowed", 400))
+func UploadImage(buffer []byte, contentType string, fileName string) (*dto.CreateMediaResponse, error) {
+	if !strings.HasPrefix(contentType, "image/") {
+		return nil, fmt.Errorf("file type not allowed")
 	}
 
-	fileExt := path.Ext(fileHeader.Filename)
+	fileExt := path.Ext(fileName)
 
 	date := time.Now().Format("2006-01-02")
 	randomID, err := uuid.NewRandom()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to generate UUID: %v", err)
 	}
 
 	key := fmt.Sprintf("%s/%s%s", date, randomID.String(), fileExt)
 
+	fileBytes := bytes.NewReader(buffer)
+	size := int64(len(buffer))
+
 	obj, err := ext.StorageClient().UploadFile(&storage.StorageFile{
 		Key:           key,
 		FileBytes:     fileBytes,
-		ContentType:   fileType,
+		ContentType:   contentType,
 		ContentLength: size,
 	})
 
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to upload file: %v", err)
 	}
 
 	md5 := strings.Trim(aws.ToString(obj.ETag), "\"")
 
 	url := ext.StorageClient().GetPublicFileURL(key)
 
+	// Decode image to get width, height, and prominent color
 	img, _, err := image.Decode(bytes.NewBuffer(buffer))
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to decode image: %v", err)
 	}
 
 	bounds := img.Bounds()
-	width := bounds.Max.X - bounds.Min.X
-	height := bounds.Max.Y - bounds.Min.Y
+	width := bounds.Dx()
+	height := bounds.Dy()
 
 	colours, err := prominentcolor.Kmeans(img)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to get prominent colors: %v", err)
 	}
 
 	_, err = ext.EntClient().Media.Create().
@@ -109,14 +119,14 @@ func UploadMedia(c *fiber.Ctx) error {
 		SetPrimaryCorlor(colours[0].AsString()).
 		SetURL(url).
 		SetHash(md5).
-		Save(c.Context())
+		Save(context.Background())
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(result.NewSuccessResult(dto.CreateMediaResponse{
+	return &dto.CreateMediaResponse{
 		Url:  url,
 		Hash: md5,
-	}))
+	}, nil
 }

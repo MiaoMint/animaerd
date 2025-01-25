@@ -72,6 +72,10 @@ func InitRouter(app *fiber.App) {
 	aspectRatioGroup := app.Group("/aspectratio")
 	aspectRatioGroup.Get("/", handler.GetAspectRatioList)
 
+	// 生成
+	aiGroup := app.Group("/ai")
+	aiGroup.Post("/text2image", handler.GenerateTextToImage)
+
 	// 以下需要管理员鉴权的路由
 	app.Use(func(c *fiber.Ctx) error {
 		isAdmin := c.Locals("isAdmin").(bool)

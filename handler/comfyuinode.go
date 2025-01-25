@@ -5,6 +5,7 @@ import (
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/comfyuinode"
 	"github.com/MiaoMint/animaerd/ext"
+	"github.com/MiaoMint/animaerd/pkg/comfynode"
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,6 +16,7 @@ func GetComfyUiNodeList(c *fiber.Ctx) error {
 	nodes, err := entClient.ComfyUINode.Query().
 		Order(ent.Asc(comfyuinode.FieldName)).
 		All(c.Context())
+	comfy := ext.ComfyNodeManager()
 
 	if err != nil {
 		return c.JSON(result.NewErrorResult("Failed to fetch nodes", 500))
@@ -22,12 +24,25 @@ func GetComfyUiNodeList(c *fiber.Ctx) error {
 
 	var list []dto.ComfyUiNodeResponse
 	for _, node := range nodes {
+		comfyStatus := comfy.GetNodeStatus(node.ID)
+
+		if comfyStatus == nil {
+			comfyStatus = &comfynode.NodeStatus{
+				IsAlive:   false,
+				LastCheck: "",
+				Queue:     0,
+			}
+		}
+
 		list = append(list, dto.ComfyUiNodeResponse{
 			ID:          node.ID,
 			Name:        node.Name,
 			Endpoint:    node.Endpoint,
 			Enabled:     node.Enabled,
 			CreatedTime: node.CreateTime.String(),
+			IsAlive:     comfyStatus.IsAlive,
+			LastCheck:   comfyStatus.LastCheck,
+			Queue:       comfyStatus.Queue,
 		})
 	}
 

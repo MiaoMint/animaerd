@@ -1,17 +1,20 @@
-interface ComfyUINode {
+export interface ComfyUINode {
   id: number;
   name: string;
   endpoint: string;
   enabled: boolean;
   createdTime: string;
+  isAlive: boolean;
+  lastCheck: string;
+  queue: number;
 }
 
-interface CreateComfyUINodeRequest {
+export interface CreateComfyUINodeRequest {
   name: string;
   endpoint: string;
 }
 
-interface UpdateComfyUINodeRequest {
+export interface UpdateComfyUINodeRequest {
   name?: string;
   endpoint?: string;
   enabled?: boolean;

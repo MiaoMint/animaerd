@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Loader2, Pencil, Trash } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { comfyuiNodeApi } from "@/api/comfyui-node";
+import { ComfyUINode } from "@/types/comfyui-node";
 
 // API functions
 const fetchNodes = async () => {
@@ -187,6 +188,9 @@ export default function ComfyUINodesPage() {
               <TableHead>Name</TableHead>
               <TableHead>Endpoint</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>IsAlive</TableHead>
+              <TableHead>Last Check</TableHead>
+              <TableHead>Queue</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -210,6 +214,22 @@ export default function ComfyUINodesPage() {
                       onCheckedChange={() => handleToggleEnabled(node)}
                     />
                   </TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        node.isAlive ? "bg-green-500 text-white" : "bg-red-500"
+                      }`}
+                    >
+                      {node.isAlive ? "Online" : "Offline"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {/* 时间的显示不是日期 */}
+                    {new Date(node.lastCheck).getHours()}:
+                    {new Date(node.lastCheck).getMinutes()}:
+                    {new Date(node.lastCheck).getSeconds()}
+                  </TableCell>
+                  <TableCell>{node.queue}</TableCell>
                   <TableCell>
                     {new Date(node.createdTime).toLocaleDateString()}
                   </TableCell>

@@ -65,7 +65,6 @@ export default function NavBar({ className }: { className?: string }) {
             className="relative size-8 md:size-10 rounded-full"
             size="icon"
             onClick={() => router.push(`/profile/${user.username ?? user.id}`)}
-            aria-label={t("menu.userMenu.userLabel")}
           >
             <Avatar className="size-8 md:size-10">
               <AvatarImage src={user.avatar} alt={user.display_name} />
@@ -186,7 +185,7 @@ function MoreButton() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel aria-label={t("menu.userMenu.userLabel")}>
+          <DropdownMenuLabel >
             {" "}
             {user.display_name}{" "}
           </DropdownMenuLabel>

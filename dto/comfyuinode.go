@@ -6,6 +6,9 @@ type ComfyUiNodeResponse struct {
 	Endpoint    string `json:"endpoint"`
 	Enabled     bool   `json:"enabled"`
 	CreatedTime string `json:"createdTime"`
+	IsAlive     bool   `json:"isAlive"`
+	LastCheck   string `json:"lastCheck"`
+	Queue       int    `json:"queue"`
 }
 
 type CreateComfyUiNodeRequest struct {

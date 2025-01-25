@@ -7,6 +7,7 @@ import (
 
 	"github.com/MiaoMint/animaerd/config"
 	"github.com/MiaoMint/animaerd/ent"
+	"github.com/MiaoMint/animaerd/pkg/comfynode"
 	"github.com/MiaoMint/animaerd/pkg/llm"
 	"github.com/MiaoMint/animaerd/pkg/storage"
 	"github.com/gofiber/storage/redis/v3"
@@ -25,11 +26,12 @@ type oauthConfig struct {
 }
 
 var (
-	entClient     *ent.Client
-	redisStore    *redis.Storage
-	oauthConf     oauthConfig
-	storageClient *storage.StorageClient
-	llmClient     *llm.LLM
+	entClient        *ent.Client
+	redisStore       *redis.Storage
+	oauthConf        oauthConfig
+	storageClient    *storage.StorageClient
+	llmClient        *llm.LLM
+	comfyNodeManager *comfynode.ComfyNodeManager
 )
 
 func EntClient() *ent.Client {
@@ -98,6 +100,16 @@ func StorageClient() *storage.StorageClient {
 	}
 	storageClient = client
 	return client
+}
+
+func ComfyNodeManager() *comfynode.ComfyNodeManager {
+	if comfyNodeManager != nil {
+		return comfyNodeManager
+	}
+	client := EntClient()
+	m := comfynode.NewManager(client)
+	comfyNodeManager = m
+	return m
 }
 
 func GoogleOauth() *oauth2.Config {

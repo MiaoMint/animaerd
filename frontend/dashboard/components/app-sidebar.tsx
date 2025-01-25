@@ -6,6 +6,7 @@ import {
   LucideImage,
   MessageCircle,
   Ratio,
+  Server,
   Settings2,
   Sparkles,
   Tags,
@@ -66,19 +67,14 @@ const data = {
       icon: Sparkles,
     },
     {
+      title: "ComfyUI Server Nodes",
+      url: "/comfyui-nodes",
+      icon: Server,
+    },
+    {
       title: "Settings",
       url: "#",
       icon: Settings2,
-      items: [
-        {
-          title: "ComfyUI Server Nodes",
-          url: "/comfyui-nodes",
-        },
-        {
-          title: "General",
-          url: "#",
-        },
-      ],
     },
   ],
   navSecondary: [

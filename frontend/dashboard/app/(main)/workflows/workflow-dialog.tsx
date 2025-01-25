@@ -117,10 +117,7 @@ export function WorkflowDialog({
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -128,10 +125,12 @@ export function WorkflowDialog({
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter workflow name" 
-                      {...field} 
-                      className={form.formState.errors.name ? "border-red-500" : ""}
+                    <Input
+                      placeholder="Enter workflow name"
+                      {...field}
+                      className={
+                        form.formState.errors.name ? "border-red-500" : ""
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -181,7 +180,7 @@ export function WorkflowDialog({
                     <textarea
                       {...field}
                       className="flex min-h-[200px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      placeholder="Enter workflow JSON"
+                      placeholder="Enter workflow JSON; {text} will be replaced with input text, {width} and {height} will be replaced with image width and height"
                     />
                   </FormControl>
                   <FormMessage />

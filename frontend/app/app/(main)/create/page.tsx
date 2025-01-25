@@ -19,7 +19,7 @@ import MD5 from "crypto-js/md5";
 import CryptoJS from "crypto-js";
 import { mediaApi } from "@/api/media";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { artworkApi } from "@/api/artwork";
@@ -33,6 +33,10 @@ import {
 } from "@/components/ui/form";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { CreateMediaResponse } from "@/types/media";
+import { aspectRatioApi } from "@/api/aspect-ratio";
+import { styleApi } from "@/api/style";
+import { aiApi } from "@/api/ai";
 
 const formSchema = z.object({
   title: z.string(),
@@ -42,8 +46,6 @@ const formSchema = z.object({
 
 export default function CreatePage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [aspectRatio, setAspectRatio] = useState("1:1");
-  const [style, setStyle] = useState("realistic");
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [hash, setHash] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -253,70 +255,16 @@ export default function CreatePage() {
           </motion.div>
         </div>
 
-        <Dialog
-          open={isGenerateDialogOpen}
-          onOpenChange={setIsGenerateDialogOpen}
-        >
-          <DialogContent className="max-w-2xl mx-4">
-            <DialogHeader>
-              <DialogTitle>{t("generate.title")}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Textarea
-                placeholder={t("generate.prompt")}
-                className="min-h-[200px] resize-none"
-              />
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t("generate.aspectRatio")}</Label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {["1:1", "4:3", "16:9", "3:4"].map((ratio) => (
-                      <Button
-                        key={ratio}
-                        variant={aspectRatio === ratio ? "default" : "outline"}
-                        size="sm"
-                        className="w-full"
-                        onClick={() => setAspectRatio(ratio)}
-                      >
-                        {ratio}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+        {/* generate dialog */}
+        <GenerateDialog
+          isGenerateDialogOpen={isGenerateDialogOpen}
+          setIsGenerateDialogOpen={setIsGenerateDialogOpen}
+          onGenerate={(data) => {
+            setHash(data.hash);
+            setSelectedImage(data.url);
+          }}
+        />
 
-                <div className="space-y-2">
-                  <Label>{t("generate.style")}</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["realistic", "artistic", "anime", "3d"].map(
-                      (styleOption) => (
-                        <Button
-                          key={styleOption}
-                          variant={
-                            style === styleOption ? "default" : "outline"
-                          }
-                          size="sm"
-                          className="w-full"
-                          onClick={() => setStyle(styleOption)}
-                        >
-                          {t(`generate.styles.${styleOption}`)}
-                        </Button>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Button className="w-full">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {t("generate.generateButton")}
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  {t("generate.note")}
-                </p>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
         {selectedImage && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -435,5 +383,123 @@ export default function CreatePage() {
         )}
       </div>
     </div>
+  );
+}
+
+function GenerateDialog({
+  isGenerateDialogOpen,
+  setIsGenerateDialogOpen,
+  onGenerate,
+}: {
+  isGenerateDialogOpen: boolean;
+  setIsGenerateDialogOpen: (open: boolean) => void;
+  onGenerate: (data: CreateMediaResponse) => void;
+}) {
+  const t = useTranslations("Create");
+  const [aspectRatioList, setAspectRatioList] = useState<
+    AspectRatio[] | null
+  >();
+  const [styleList, setStyleList] = useState<StyleResponse[] | null>();
+  const [aspectRatio, setAspectRatio] = useState<number>();
+  const [style, setStyle] = useState<number>();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const aspectRatioResponse = await aspectRatioApi.getAspectRatios();
+      const styleResponse = await styleApi.getStyles();
+      setAspectRatioList(aspectRatioResponse.data);
+      setStyleList(styleResponse.data);
+    })();
+  }, []);
+  async function handleGenerate() {
+    if (!aspectRatio || !style) {
+      setIsGenerating(false);
+      return;
+    }
+    setIsGenerating(true);
+
+    try {
+      const response = await aiApi.text2image({
+        text,
+        aspect_ratio_id: aspectRatio,
+        style_id: style,
+      });
+      if (response.code === 200) {
+        onGenerate(response.data!);
+        setIsGenerateDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Error generating media:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  return (
+    <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+      <DialogContent className="max-w-2xl mx-4">
+        <DialogHeader>
+          <DialogTitle>{t("generate.title")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <Textarea
+            placeholder={t("generate.prompt")}
+            className="min-h-[200px] resize-none"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t("generate.aspectRatio")}</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {aspectRatioList?.map((ratio) => (
+                  <Button
+                    key={ratio.id}
+                    variant={aspectRatio === ratio.id ? "default" : "outline"}
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setAspectRatio(ratio.id)}
+                  >
+                    {ratio.ratio}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("generate.style")}</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {styleList?.map((styleOption) => (
+                  <Button
+                    key={styleOption.id}
+                    variant={style === styleOption.id ? "default" : "outline"}
+                    className="w-full flex flex-col justify-center h-24 rounded-md"
+                    onClick={() => setStyle(styleOption.id)}
+                  >
+                    <img
+                      src={styleOption.icon}
+                      className="size-14 rounded-lg"
+                      alt={styleOption.name}
+                    />
+                    {styleOption.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Button className="w-full" disabled={isGenerating} onClick={handleGenerate}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              {t("generate.generateButton")}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">
+              {t("generate.note")}
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

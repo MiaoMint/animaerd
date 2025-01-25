@@ -6,6 +6,7 @@ import (
 	"github.com/MiaoMint/animaerd/config"
 	"github.com/MiaoMint/animaerd/ent"
 	_ "github.com/MiaoMint/animaerd/ent/runtime"
+	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/MiaoMint/animaerd/router"
 	"github.com/gofiber/fiber/v2"
@@ -36,6 +37,7 @@ func main() {
 	app.Use(cors.New())
 
 	router.InitRouter(app)
+	ext.ComfyNodeManager()
 	app.Listen(fmt.Sprintf(":%s", config.C.Port))
 
 }
