@@ -490,8 +490,15 @@ function GenerateDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <Button className="w-full" disabled={isGenerating} onClick={handleGenerate}>
-              <Sparkles className="mr-2 h-4 w-4" />
+            <Button
+              className="w-full"
+              disabled={isGenerating}
+              onClick={handleGenerate}
+            >
+              {!isGenerating && <Sparkles className="mr-2 h-4 w-4" />}
+              {isGenerating && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
               {t("generate.generateButton")}
             </Button>
             <p className="text-xs text-muted-foreground text-center">
