@@ -55,6 +55,9 @@ func UploadMedia(c *fiber.Ctx) error {
 	}
 
 	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
 	// 上传文件
 	resp, err := UploadImage(fileBytes, fileHeader.Header.Get("Content-Type"), fileHeader.Filename)
 	if err != nil {
