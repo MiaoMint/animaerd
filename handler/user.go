@@ -194,3 +194,19 @@ func UpdateAdminStatus(c *fiber.Ctx) error {
 
 	return c.JSON(result.NewSuccessResult(nil))
 }
+
+func DeleteUser(c *fiber.Ctx) error {
+	userId := c.Params("id")
+	userIdInt, err := strconv.Atoi(userId)
+	if err != nil {
+		return err
+	}
+
+	entClient := ext.EntClient()
+	err = entClient.User.DeleteOneID(userIdInt).Exec(c.Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result.NewSuccessResult(nil))
+}

@@ -6,16 +6,23 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/MiaoMint/animaerd/ent"
+	"github.com/MiaoMint/animaerd/ent/comment"
+	"github.com/MiaoMint/animaerd/ent/workflow"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/sashabaranov/go-openai"
 )
 
 type LLM struct {
 	openAiClient *openai.Client
+	entClient    *ent.Client
 }
 
-func NewLLM(openAiClient *openai.Client) *LLM {
-	return &LLM{openAiClient: openAiClient}
+func NewLLM(openAiClient *openai.Client, entClient *ent.Client) *LLM {
+	return &LLM{
+		openAiClient: openAiClient,
+		entClient:    entClient,
+	}
 }
 
 type MediaMetadata struct {
@@ -152,4 +159,113 @@ func (l *LLM) GenerateArtworkAITag(url string, metadata MediaMetadata) ([]string
 	}
 
 	return tags, nil
+}
+
+type GenerateCommentResult struct {
+	CanGenerate     bool   `json:"canGenerate"`
+	WorkflowID      int    `json:"workflowID"`
+	Prompt          string `json:"prompt"`
+	ArtworkImageUrl string
+	Height          int
+	Width           int
+}
+
+// 评论生成的图片
+func (l *LLM) GenerateCommentIs(commentId int) (*GenerateCommentResult, error) {
+
+	dbComment, err := l.entClient.Comment.Query().
+		Where(comment.IDEQ(commentId)).
+		WithArtwork(func(aq *ent.ArtworkQuery) {
+			aq.WithMedia()
+		}).
+		Only(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	workflows, err := l.entClient.Workflow.Query().
+		Select(workflow.FieldID,
+			workflow.FieldName,
+		).
+		Where(workflow.TypeEQ(workflow.TypeCommentToImage), workflow.Enabled(true)).
+		All(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	workflowsByte, err := json.Marshal(workflows)
+	if err != nil {
+		return nil, err
+	}
+
+	systemPrompt := fmt.Sprintf(`
+Please perform the following operations based on user comments:
+
+1. **Intent analysis**: Determine whether the comment contains clear image modification requirements (such as negative comments/specific modification requirements)
+- Positive keywords: blur/too dark/adjust/add/delete/color/style, etc.
+- Reverse keywords: satisfied/good/very good/maintain, etc.
+
+2. **Prompt generation rules** (only when canGenerate=true):
+- Extract descriptive phrases (nouns/adjectives/verbs), separated by Chinese commas
+- Filter non-visual related words (such as "expensive")
+- Keep core modification requirements (such as "change red to blue" → "blue")
+
+3. **Workflow matching logic**:
+According to the following list, match the corresponding workflowID according to the requirements
+%s
+4. **Strict output requirements**:
+- The complete JSON structure must be output, and the empty value field retains the key
+- Make sure the Boolean value is lowercase and the ID is a numeric type
+
+Example:
+User comment: The background is too messy and the color is not coordinated. I hope to simplify the color tone
+Output:
+{
+"canGenerate": true,
+"prompt": "Simple background, harmonious tones, simple style",
+"workflowID": 2
+}`, string(workflowsByte))
+
+	log.Info("GenerateCommentIs", systemPrompt)
+
+	resp, err := l.openAiClient.CreateChatCompletion(context.Background(),
+		openai.ChatCompletionRequest{
+			Model: "gpt-4o",
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    "system",
+					Content: systemPrompt,
+				},
+				{
+					Role:    "user",
+					Content: dbComment.Content,
+				},
+			},
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONObject,
+			},
+		},
+	)
+
+	if err != nil {
+		log.Errorw("openai", "err", err)
+		return nil, err
+	}
+
+	var generationResult GenerateCommentResult
+
+	jsonStr := strings.ReplaceAll(strings.ReplaceAll(resp.Choices[0].Message.Content, "```json", ""), "```", "")
+
+	log.Info("GenerateCommentIs", jsonStr)
+
+	err = json.Unmarshal([]byte(jsonStr), &generationResult)
+	if err != nil {
+		return nil, err
+	}
+
+	generationResult.Height = dbComment.Edges.Artwork[0].Edges.Media.Height
+	generationResult.Width = dbComment.Edges.Artwork[0].Edges.Media.Width
+	generationResult.ArtworkImageUrl = dbComment.Edges.Artwork[0].Edges.Media.URL
+
+	return &generationResult, nil
 }

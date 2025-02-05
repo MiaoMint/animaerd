@@ -5,11 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import NumberFlow from "@number-flow/react";
 import { useQuery } from "@tanstack/react-query";
 
-export default function UserNumberFlow() {
-  const { data: totalUsers = 0 } = useQuery({
-    queryKey: ["dashboard", "total-users"],
+export default function ArtworkNumberFlow() {
+  const { data: totalArtworks = 0 } = useQuery({
+    queryKey: ["dashboard", "total-artworks"],
     queryFn: async () => {
-      const response = await dashboardApi.getTotalUsers();
+      const response = await dashboardApi.getArtworks();
       return response.data;
     },
   });
@@ -18,10 +18,10 @@ export default function UserNumberFlow() {
     <Card className="h-full shadow-none">
       <CardContent className="flex flex-col justify-center h-full gap-2">
         <h3 className="text-lg font-medium text-muted-foreground">
-          Total Users
+          Total Artworks
         </h3>
         <NumberFlow
-          value={totalUsers}
+          value={totalArtworks}
           locales="en-US"
           className="text-4xl font-bold"
         />

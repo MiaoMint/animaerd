@@ -1,13 +1,20 @@
 package handler
 
 import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
 	"github.com/MiaoMint/animaerd/dto"
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/artwork"
 	"github.com/MiaoMint/animaerd/ent/comment"
+	"github.com/MiaoMint/animaerd/ent/workflow"
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
 func GetArtworkComments(c *fiber.Ctx) error {
@@ -178,6 +185,111 @@ func CreateArtworkComment(c *fiber.Ctx) error {
 	if err != nil {
 		return c.JSON(result.NewErrorResult("Failed to add comment to artwork", 500))
 	}
+
+	go func() {
+		// 生成评论图片
+		llmClient := ext.LLMClient()
+		res, err := llmClient.GenerateCommentIs(comment.ID)
+		if err != nil {
+			return
+		}
+
+		if !res.CanGenerate || res.WorkflowID == 0 {
+			log.Info("Can not generate comment")
+			return
+		}
+
+		workflow, err := entClient.Workflow.Query().
+			Where(workflow.IDEQ(res.WorkflowID)).
+			First(context.Background())
+		if err != nil {
+			log.Error("Failed to get workflow", err)
+			return
+		}
+
+		prompt := strings.ReplaceAll(workflow.JSON, "{prompt}", res.Prompt)
+		prompt = strings.ReplaceAll(prompt, "{width}", fmt.Sprint(res.Width))
+		prompt = strings.ReplaceAll(prompt, "{imageInput}", fmt.Sprint(res.ArtworkImageUrl))
+		prompt = strings.ReplaceAll(prompt, "{height}", fmt.Sprint(res.Height))
+
+		log.Info("Prompt: ", prompt)
+
+		comfy := ext.ComfyNodeManager()
+
+		task, err := comfy.AddTask(prompt)
+		if err != nil {
+			log.Error("Failed to add task", err)
+			return
+		}
+
+		timeout := time.After(1 * time.Minute)
+		for {
+			select {
+			case <-timeout:
+				log.Error("Task timeout after 1 minute")
+				return
+			default:
+				taskData, err := comfy.GetTask(task)
+				if err != nil {
+					log.Error("Failed to get task data", err)
+					return
+				}
+				if taskData[task.PromptID] == nil {
+					time.Sleep(time.Second) // Wait 1 second before checking again
+					continue
+				}
+
+				outputs := taskData[task.PromptID].(map[string]interface{})["outputs"].(map[string]interface{})
+				_resultNode, ok := outputs[fmt.Sprint(workflow.ImageResultNode)]
+				if !ok {
+					log.Error("Result node not found")
+					return
+				}
+				resultNode := _resultNode.(map[string]interface{})
+				imageResult := resultNode["images"].([]interface{})[0].(map[string]interface{})
+				imageFileName := imageResult["filename"].(string)
+				buffer, contentType, err := comfy.GetImage(task.NodeID, imageFileName)
+				if err != nil {
+					log.Error("Failed to get image", err)
+					return
+				}
+				media, err := UploadImage(buffer, contentType, imageFileName)
+				if err != nil {
+					log.Error("Failed to upload image", err)
+					return
+				}
+
+				metadata, err := llmClient.GenerateMetadata(media.URL)
+				if err != nil {
+					log.Error("Failed to generate metadata", err)
+					return
+				}
+
+				artwork, err := entClient.Artwork.Create().
+					SetTitle(metadata.Title).
+					SetDescription(metadata.Description).
+					SetIsAi(true).
+					SetOwnerID(int(userId)).
+					SetMediaID(media.ID).
+					Save(context.Background())
+				if err != nil {
+					log.Error("Failed to create artwork", err)
+					return
+				}
+
+				_, err = entClient.Comment.
+					UpdateOneID(comment.ID).
+					SetGeneratedArtworkID(artwork.ID).
+					Save(context.Background())
+				if err != nil {
+					log.Error("Failed to update comment", err)
+					return
+				}
+				return // Exit after successful processing
+			}
+		}
+
+	}()
 
 	return c.JSON(result.NewSuccessResult(comment.ID))
 }

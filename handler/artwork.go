@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"strings"
 
 	"github.com/MiaoMint/animaerd/dto"
 	"github.com/MiaoMint/animaerd/ent"
@@ -23,6 +24,7 @@ func GetArtworkList(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)
 	pageSize := c.QueryInt("pageSize", 20)
 	username := c.Query("username")
+	commentGenerate := c.Query("commentGenerate")
 	isLiked := c.Query("isLiked")
 
 	// Calculate offset
@@ -46,6 +48,14 @@ func GetArtworkList(c *fiber.Ctx) error {
 				user.UsernameEQ(username),
 			))
 		}
+	}
+
+	if commentGenerate == "true" {
+		query = query.Where(artwork.HasCommentGenerate())
+	}
+
+	if commentGenerate == "false" {
+		query = query.Where(artwork.Not(artwork.HasCommentGenerate()))
 	}
 
 	artworks, err := query.All(c.Context())
@@ -308,4 +318,94 @@ func GetArtworkLikeStatus(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(result.NewSuccessResult(like))
+}
+
+// SearchArtworks handles searching artworks with multiple tags and fuzzy search on title/description
+func SearchArtworks(c *fiber.Ctx) error {
+	entClient := ext.EntClient()
+
+	// Get pagination parameters
+	page := c.QueryInt("page", 1)
+	pageSize := c.QueryInt("pageSize", 20)
+
+	// Get search parameters
+	query := c.Query("q", "")   // For title and description search
+	tags := c.Query("tags", "") // Comma-separated tags
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Start building the query
+	artworkQuery := entClient.Artwork.Query().
+		WithMedia().
+		WithTags().
+		WithOwner()
+
+	// Add title and description search if query is not empty
+	if query != "" {
+		artworkQuery = artworkQuery.Where(
+			artwork.Or(
+				artwork.TitleContains(query),
+				artwork.DescriptionContains(query),
+			),
+		)
+	}
+
+	// Add tags filter if tags are provided
+	if tags != "" {
+		tagsList := strings.Split(tags, ",")
+		if len(tagsList) > 0 {
+			artworkQuery = artworkQuery.Where(
+				artwork.HasTagsWith(
+					tag.NameIn(tagsList...),
+				),
+			)
+		}
+	}
+
+	// Apply pagination and ordering
+	artworkQuery = artworkQuery.
+		Offset(offset).
+		Limit(pageSize).
+		Order(ent.Desc(artwork.FieldCreateTime))
+
+	// Execute the query
+	artworks, err := artworkQuery.All(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).
+			JSON(result.NewErrorResult("Failed to search artworks", fiber.StatusInternalServerError))
+	}
+
+	// Transform the results
+	var list []dto.ArtworkResponse
+	for _, artwork := range artworks {
+		var tags []string
+		for _, tag := range artwork.Edges.Tags {
+			tags = append(tags, tag.Name)
+		}
+
+		list = append(list, dto.ArtworkResponse{
+			ID:            artwork.ID,
+			Title:         artwork.Title,
+			Description:   artwork.Description,
+			URL:           artwork.Edges.Media.URL,
+			Width:         artwork.Edges.Media.Width,
+			Height:        artwork.Edges.Media.Height,
+			PrimaryCorlor: artwork.Edges.Media.PrimaryCorlor,
+			IsAI:          artwork.IsAi,
+			Tags:          tags,
+			User: dto.UserResponse{
+				ID:                artwork.Edges.Owner.ID,
+				Username:          artwork.Edges.Owner.Username,
+				Avatar:            artwork.Edges.Owner.Avatar,
+				DisplayName:       artwork.Edges.Owner.DisplayName,
+				Bio:               artwork.Edges.Owner.Bio,
+				IsFavoritesPublic: artwork.Edges.Owner.IsFavoritesPublic,
+				IsLikesPublic:     artwork.Edges.Owner.IsLikesPublic,
+			},
+			CreatedTime: artwork.CreateTime.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return c.JSON(result.NewSuccessResult(list))
 }

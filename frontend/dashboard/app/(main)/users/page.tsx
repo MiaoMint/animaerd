@@ -68,6 +68,23 @@ export default function UsersPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
+    setIsLoading(true);
+    try {
+      await userApi.deleteUser(id);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete user",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRoleToggle = async (userId: number, currentRole: string) => {

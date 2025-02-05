@@ -22,6 +22,7 @@ func InitRouter(app *fiber.App) {
 
 	artworkGroup := app.Group("/artwork")
 	artworkGroup.Get("/", handler.GetArtworkList)
+	artworkGroup.Get("/search", handler.SearchArtworks)
 
 	// 以下需要普通用户鉴权的路由
 	app.Use(jwtware.New(jwtware.Config{
@@ -92,6 +93,14 @@ func InitRouter(app *fiber.App) {
 	adminUserGroup := adminGroup.Group("/user")
 	adminUserGroup.Get("/", handler.GetUserList)
 	adminUserGroup.Put("/:id/role", handler.UpdateAdminStatus)
+	adminUserGroup.Delete("/:id", handler.DeleteUser)
+
+	// Dashboard routes
+	dashboardGroup := adminGroup.Group("/dashboard")
+	dashboardGroup.Get("/total-users", handler.GetTotalUsers)
+	dashboardGroup.Get("/total-artworks", handler.GetTotalArtworks)
+	dashboardGroup.Get("/total-comment-generates", handler.GetTotalCommentGenerates)
+	dashboardGroup.Get("/recent-three-month", handler.GetRecentThreeMonthData)
 
 	// ComfyUI Node routes
 	comfyuiNodeGroup := app.Group("/comfyui/node")
@@ -122,4 +131,10 @@ func InitRouter(app *fiber.App) {
 	workflowGroup.Put("/:id", handler.UpdateWorkflow)
 	workflowGroup.Delete("/:id", handler.DeleteWorkflow)
 
+	// 标签
+	tagGroup := app.Group("/tag")
+	tagGroup.Get("/", handler.GetTags)
+	tagGroup.Post("/", handler.CreateTag)
+	tagGroup.Put("/:id", handler.UpdateTag)
+	tagGroup.Delete("/:id", handler.DeleteTag)
 }

@@ -76,13 +76,13 @@ export default function ProfilePage({
             </TabsList>
           </div>
           <TabsContent value="artworks">
-            <ArtworkGrid username={data?.username} />
+            <ArtworkGrid username={data?.username} commentGenerate={false} />
           </TabsContent>
           <TabsContent value="comments">
-            {/* Add Comments content here */}
+            <ArtworkGrid username={data?.username} commentGenerate />
           </TabsContent>
           <TabsContent value="likes">
-            <ArtworkGrid username={data?.username} isLiked={true} />
+            <ArtworkGrid username={data?.username} isLiked />
           </TabsContent>
         </Tabs>
       </div>

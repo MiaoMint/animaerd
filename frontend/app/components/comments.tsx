@@ -14,6 +14,7 @@ import {
 import { Laugh } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 interface CommentsProps {
   artworkId: number;
@@ -154,6 +155,24 @@ export function Comments({ artworkId }: CommentsProps) {
                   </span>
                 </div>
                 <p className="text-sm mt-1">{comment.content}</p>
+                {/* preview Artowkr */}
+                {comment.artwork?.url && (
+                  <Link href={`/artwork/${comment.artwork.id}`} className="flex items-center space-x-2 mt-2">
+                    <img
+                      src={comment.artwork.url}
+                      alt={comment.artwork.title}
+                      className="size-20 rounded-md"
+                    />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {comment.artwork.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Preview Artwork
+                      </p>
+                    </div>
+                  </Link>
+                )}
                 {user && (
                   <button
                     onClick={() =>

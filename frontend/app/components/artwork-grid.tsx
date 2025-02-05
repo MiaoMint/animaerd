@@ -16,9 +16,14 @@ import { useTranslations } from "next-intl";
 interface ArtworkGridProps {
   username?: string;
   isLiked?: boolean;
+  commentGenerate?: boolean;
 }
 
-export function ArtworkGrid({ username, isLiked }: ArtworkGridProps) {
+export function ArtworkGrid({
+  username,
+  isLiked,
+  commentGenerate,
+}: ArtworkGridProps) {
   const [artworks, setArtworks] = useState<ArtworkResponse[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -45,6 +50,7 @@ export function ArtworkGrid({ username, isLiked }: ArtworkGridProps) {
         pageSize: 20,
         username,
         isLiked,
+        commentGenerate,
       });
       if (response.data === null) {
         setHasMore(false);

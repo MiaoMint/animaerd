@@ -7,17 +7,20 @@ export const artworkApi = {
     pageSize,
     username,
     isLiked,
+    commentGenerate,
   }: {
     page: number;
     pageSize: number;
     username?: string;
     isLiked?: boolean;
+    commentGenerate?: boolean;
   }) =>
     http.get<BaseResponse<ArtworkResponse[]>>(`/artwork`, {
       pageSize,
       page,
       username,
       isLiked,
+      commentGenerate,
     }),
 
   getArtworkById: (id: number) =>

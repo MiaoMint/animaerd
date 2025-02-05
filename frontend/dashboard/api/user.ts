@@ -23,4 +23,8 @@ export const userApi = {
     formData.append("file", file);
     return http.put<BaseResponse<UserResponse>>("/user/avatar", formData);
   },
+
+  // Delete user
+  deleteUser: (id: number) =>
+    http.delete<BaseResponse<null>>(`/admin/user/${id}`),
 };

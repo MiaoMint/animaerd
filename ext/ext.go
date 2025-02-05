@@ -64,7 +64,7 @@ func LLMClient() *llm.LLM {
 	}
 
 	client := openai.NewClientWithConfig(c)
-	llmClient = llm.NewLLM(client)
+	llmClient = llm.NewLLM(client, EntClient())
 
 	return llmClient
 }

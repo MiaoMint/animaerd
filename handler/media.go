@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/EdlinOrg/prominentcolor"
-	"github.com/MiaoMint/animaerd/dto"
+	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/media"
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
@@ -66,7 +66,7 @@ func UploadMedia(c *fiber.Ctx) error {
 	return c.JSON(result.NewSuccessResult(resp))
 }
 
-func UploadImage(buffer []byte, contentType string, fileName string) (*dto.CreateMediaResponse, error) {
+func UploadImage(buffer []byte, contentType string, fileName string) (*ent.Media, error) {
 	if !strings.HasPrefix(contentType, "image/") {
 		return nil, fmt.Errorf("file type not allowed")
 	}
@@ -114,7 +114,7 @@ func UploadImage(buffer []byte, contentType string, fileName string) (*dto.Creat
 		return nil, fmt.Errorf("failed to get prominent colors: %v", err)
 	}
 
-	_, err = ext.EntClient().Media.Create().
+	media, err := ext.EntClient().Media.Create().
 		SetKey(key).
 		SetSize(int(size)).
 		SetWidth(width).
@@ -124,12 +124,5 @@ func UploadImage(buffer []byte, contentType string, fileName string) (*dto.Creat
 		SetHash(md5).
 		Save(context.Background())
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &dto.CreateMediaResponse{
-		Url:  url,
-		Hash: md5,
-	}, nil
+	return media, err
 }

@@ -234,7 +234,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
               <div className="bg-card p-6 rounded-xl shadow-sm border border-border/50">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden ring-2 ring-border/5">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden ring-2 ring-border/5 flex-shrink-0">
                       <Link href={`/profile/${artwork.user.username}`}>
                         {artwork.user.avatar && (
                           <Avatar className="size-10">
@@ -250,7 +250,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
                       </Link>
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold">{artwork.title}</h1>
+                      <h1 className="text-xl font-bold line-clamp-2">{artwork.title}</h1>
                       <Link href={`/profile/${artwork.user.username}`}>
                         <p className="text-sm text-muted-foreground">
                           {artwork.user.username}
