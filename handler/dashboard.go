@@ -55,37 +55,65 @@ func GetRecentThreeMonthData(c *fiber.Ctx) error {
 	// Get current time
 	now := time.Now()
 	// Get date 3 months ago
-	threeMonthsAgo := now.AddDate(0, -3, 0)
+	threeMonthsAgo := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, -3, 0)
 
-	var data []MonthData
+	// Get all user registrations in one query
+	userRegistrations, err := entClient.User.Query().
+		Where(user.CreateTimeGTE(threeMonthsAgo)).
+		Select(user.FieldCreateTime).
+		All(c.Context())
+	if err != nil {
+		return err
+	}
 
-	// Query data day by day for the last 3 months
+	// Get all AI artworks in one query
+	aiArtworks, err := entClient.Artwork.Query().
+		Where(
+			artwork.CreateTimeGTE(threeMonthsAgo),
+			artwork.IsAi(true),
+		).
+		Select(artwork.FieldCreateTime).
+		All(c.Context())
+	if err != nil {
+		return err
+	}
+
+	// Create a map to store daily counts
+	dailyData := make(map[string]*MonthData)
+
+	// Initialize all dates in the range
 	for d := threeMonthsAgo; d.Before(now) || d.Equal(now); d = d.AddDate(0, 0, 1) {
-		dayStart := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, d.Location())
-		dayEnd := dayStart.AddDate(0, 0, 1)
-
-		// Count users registered on this day
-		userCount, err := entClient.User.Query().
-			Where(user.CreateTimeGTE(dayStart), user.CreateTimeLT(dayEnd)).
-			Count(c.Context())
-		if err != nil {
-			return err
+		dateStr := d.Format("2006-01-02")
+		dailyData[dateStr] = &MonthData{
+			Date:     dateStr,
+			User:     0,
+			Generate: 0,
 		}
+	}
 
-		// Count artworks generated on this day
-		generateCount, err := entClient.Artwork.Query().
-			Where(artwork.CreateTimeGTE(dayStart), artwork.CreateTimeLT(dayEnd), artwork.IsAi(true)).
-			Count(c.Context())
-		if err != nil {
-			return err
+	// Count user registrations
+	for _, u := range userRegistrations {
+		dateStr := u.CreateTime.Format("2006-01-02")
+		if data, exists := dailyData[dateStr]; exists {
+			data.User++
 		}
+	}
 
-		// Add data for every day, even if there's no activity
-		data = append(data, MonthData{
-			Date:     dayStart.Format("2006-01-02"),
-			User:     userCount,
-			Generate: generateCount,
-		})
+	// Count AI artwork generations
+	for _, a := range aiArtworks {
+		dateStr := a.CreateTime.Format("2006-01-02")
+		if data, exists := dailyData[dateStr]; exists {
+			data.Generate++
+		}
+	}
+
+	// Convert map to slice in chronological order
+	var data []MonthData
+	for d := threeMonthsAgo; d.Before(now) || d.Equal(now); d = d.AddDate(0, 0, 1) {
+		dateStr := d.Format("2006-01-02")
+		if dailyStats, exists := dailyData[dateStr]; exists {
+			data = append(data, *dailyStats)
+		}
 	}
 
 	return c.JSON(result.NewSuccessResult(data))
