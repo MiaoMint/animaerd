@@ -55,6 +55,7 @@ export default function CreatePage() {
   const router = useRouter();
   const t = useTranslations("Create");
   const showLoading = isUploading || isGenerateMetadata;
+  const [isAI, setIsAI] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,6 +67,7 @@ export default function CreatePage() {
   });
 
   async function handleSelectImage(e: ChangeEvent<HTMLInputElement>) {
+    setIsAI(false);
     const file = e.target.files?.[0];
     if (!file) {
       return;
@@ -144,6 +146,7 @@ export default function CreatePage() {
         description: values.description,
         tags: values.tags.split(",").map((tag) => tag.trim()),
         media_hash: hash,
+        is_ai: isAI,
       });
 
       if (response.code === 200) {
@@ -262,6 +265,7 @@ export default function CreatePage() {
           onGenerate={(data) => {
             setHash(data.hash);
             setSelectedImage(data.url);
+            setIsAI(true);
           }}
         />
 
@@ -496,9 +500,7 @@ function GenerateDialog({
               onClick={handleGenerate}
             >
               {!isGenerating && <Sparkles className="mr-2 h-4 w-4" />}
-              {isGenerating && (
-                <Loader2 className="size-4 animate-spin" />
-              )}
+              {isGenerating && <Loader2 className="size-4 animate-spin" />}
               {t("generate.generateButton")}
             </Button>
             <p className="text-xs text-muted-foreground text-center">

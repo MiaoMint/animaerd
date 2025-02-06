@@ -77,6 +77,10 @@ func InitRouter(app *fiber.App) {
 	aiGroup := app.Group("/ai")
 	aiGroup.Post("/text2image", handler.GenerateTextToImage)
 
+	// 标签
+	tagGroup := app.Group("/tag")
+	tagGroup.Get("/popular", handler.GetPopularTags)
+
 	// 以下需要管理员鉴权的路由
 	app.Use(func(c *fiber.Ctx) error {
 		isAdmin := c.Locals("isAdmin").(bool)
@@ -131,8 +135,6 @@ func InitRouter(app *fiber.App) {
 	workflowGroup.Put("/:id", handler.UpdateWorkflow)
 	workflowGroup.Delete("/:id", handler.DeleteWorkflow)
 
-	// 标签
-	tagGroup := app.Group("/tag")
 	tagGroup.Get("/", handler.GetTags)
 	tagGroup.Post("/", handler.CreateTag)
 	tagGroup.Put("/:id", handler.UpdateTag)

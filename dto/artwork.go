@@ -5,6 +5,7 @@ type CreateArtworkRequest struct {
 	Description *string   `json:"description,omitempty"`
 	Tags        *[]string `json:"tags,omitempty"`
 	MediaHash   *string   `json:"media_hash"`
+	IsAI        *bool     `json:"is_ai,omitempty"`
 }
 
 type ArtworkResponse struct {

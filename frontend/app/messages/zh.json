@@ -4,7 +4,8 @@
     "home": "首页",
     "create": "创建",
     "search": {
-      "placeholder": "搜索内容... (按 / 键聚焦)"
+      "placeholder": "搜索内容... (按 / 键聚焦)",
+      "popularTags": "热门标签"
     },
     "menu": {
       "profile": "个人主页",
@@ -100,7 +101,7 @@
       },
       "status": {
         "uploading": "正在上传图片...",
-        "metadata" : "正在生成图片信息...",
+        "metadata": "正在生成图片信息...",
         "failed": "上传失败",
         "retry": "重试上传"
       }

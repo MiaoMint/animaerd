@@ -17,4 +17,13 @@ type TagResponse struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"` // "user" or "ai"
-} 
+}
+
+// PopularTagResponse represents the response body for popular tag operations
+type PopularTagResponse struct {
+	ID             int             `json:"id"`
+	Name           string          `json:"name"`
+	Type           string          `json:"type"` // "user" or "ai"
+	ArtworkCount   int             `json:"artwork_count"`
+	ExampleArtwork ArtworkResponse `json:"example_artwork,omitempty"`
+}

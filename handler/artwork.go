@@ -192,6 +192,7 @@ func CreateArtwork(c *fiber.Ctx) error {
 		SetNillableDescription(req.Description).
 		SetOwnerID(int(userId)).
 		SetMediaID(media.ID).
+		SetNillableIsAi(req.IsAI).
 		AddTagIDs(tagIds...).
 		Save(c.Context())
 

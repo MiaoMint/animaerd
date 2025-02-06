@@ -3,6 +3,7 @@ interface CreateArtworkRequest {
   description?: string;
   tags?: string[];
   media_hash?: string;
+  is_ai?: boolean;
 }
 
 interface ArtworkResponse {

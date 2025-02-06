@@ -1,5 +1,5 @@
 "use client";
-import { Download } from "lucide-react";
+import { Download, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
@@ -74,6 +74,12 @@ export default function ArtworkGridTile({
         height={400}
         quality={70}
       />
+
+      {artwork.is_ai && (
+        <div className="absolute bottom-4 left-4 text-white text-sm bg-black bg-opacity-50 p-1 rounded-lg px-2 flex items-center">
+          <Sparkles className="mr-1 h-4 w-4" /> <span>AI</span>
+        </div>
+      )}
 
       <div className="absolute inset-2 rounded-lg bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity p-2">
         <Button size="icon">

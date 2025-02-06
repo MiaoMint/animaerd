@@ -169,6 +169,8 @@ func (m *ComfyNodeManager) AddTask(task string) (*Task, error) {
 
 	prompt := fmt.Sprintf(`{"client_id":"%s","prompt": %s}`, "animaerd", task)
 
+	log.Info("Sending task ", prompt)
+
 	resp, err := http.Post(fmt.Sprintf("%s/api/prompt", node.Endpoint), "application/json", strings.NewReader(prompt))
 	if err != nil {
 		return nil, err

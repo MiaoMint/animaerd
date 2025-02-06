@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"sort"
+
 	"github.com/MiaoMint/animaerd/dto"
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/tag"
@@ -116,4 +118,70 @@ func DeleteTag(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(result.NewSuccessResult(nil))
+}
+
+// GetPopularTags returns tags sorted by artwork count with example artworks
+func GetPopularTags(c *fiber.Ctx) error {
+	entClient := ext.EntClient()
+
+	// Get all tags with their artworks, ordered by artwork count
+	tags, err := entClient.Tag.Query().
+		WithArtworks(func(aq *ent.ArtworkQuery) {
+			aq.WithMedia().
+				WithLikes()
+		}).
+		Limit(10).
+		All(c.Context())
+
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Failed to fetch tags", 500))
+	}
+
+	// Convert to response format and sort by artwork count
+	var popularTags []dto.PopularTagResponse
+	for _, t := range tags {
+		artworkCount := len(t.Edges.Artworks)
+		if artworkCount == 0 {
+			continue // Skip tags with no artworks
+		}
+
+		// Find the artwork with most likes for this tag
+		var mostLikedArtwork *ent.Artwork
+		maxLikes := -1
+		for _, a := range t.Edges.Artworks {
+			likesCount := len(a.Edges.Likes)
+			if likesCount > maxLikes {
+				maxLikes = likesCount
+				mostLikedArtwork = a
+			}
+		}
+
+		// Create response with example artwork
+		tagResp := dto.PopularTagResponse{
+			ID:           t.ID,
+			Name:         t.Name,
+			Type:         string(t.Type),
+			ArtworkCount: artworkCount,
+		}
+
+		if mostLikedArtwork != nil && mostLikedArtwork.Edges.Media != nil {
+			tagResp.ExampleArtwork = dto.ArtworkResponse{
+				ID:            mostLikedArtwork.ID,
+				URL:           mostLikedArtwork.Edges.Media.URL,
+				Width:         mostLikedArtwork.Edges.Media.Width,
+				Height:        mostLikedArtwork.Edges.Media.Height,
+				PrimaryCorlor: mostLikedArtwork.Edges.Media.PrimaryCorlor,
+				IsAI:          mostLikedArtwork.IsAi,
+			}
+		}
+
+		popularTags = append(popularTags, tagResp)
+	}
+
+	// Sort tags by artwork count in descending order
+	sort.Slice(popularTags, func(i, j int) bool {
+		return popularTags[i].ArtworkCount > popularTags[j].ArtworkCount
+	})
+
+	return c.JSON(result.NewSuccessResult(popularTags))
 }

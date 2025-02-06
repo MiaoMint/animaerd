@@ -23,6 +23,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { tokenStorage } from "@/utils/token";
 import { useLocale, useTranslations } from "next-intl";
 import { setUserLocale } from "@/services/locale";
+import { useQuery } from "@tanstack/react-query";
+import { tagApi } from "@/api/tag";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function NavBar({ className }: { className?: string }) {
   const router = useRouter();
@@ -130,6 +133,11 @@ function NavButton({
 function SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("Nav");
+  const [isFocused, setIsFocused] = useState(false);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["popularTags"],
+    queryFn: tagApi.getPopularTags,
+  });
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -147,11 +155,77 @@ function SearchBox() {
   }, []);
 
   return (
-    <input
-      ref={inputRef}
-      className="size-full h-12 rounded-full px-4 bg-card/30 hover:bg-card/90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      placeholder={t("search.placeholder")}
-    ></input>
+    <div className="relative">
+      <input
+        ref={inputRef}
+        className="size-full h-12 rounded-full px-4 bg-card/30 hover:bg-card/90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        placeholder={t("search.placeholder")}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+      />
+      <AnimatePresence>
+        {isFocused && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-full left-0 right-0 mt-2 bg-card border-t p-4 z-10 rounded-lg"
+          >
+            <h2 className="text-lg font-bold mb-4">{t("search.popularTags")}</h2>
+            <motion.div 
+              className="flex flex-wrap gap-2"
+              variants={{
+                show: {
+                  transition: {
+                    staggerChildren: 0.05
+                  }
+                }
+              }}
+              initial="hidden"
+              animate="show"
+            >
+              {isLoading ? (
+                <p>{t("common.loading")}</p>
+              ) : error ? (
+                <p>{t("common.error")}</p>
+              ) : (
+                data?.data.map((tag) => (
+                  <motion.button
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      show: { opacity: 1, y: 0 }
+                    }}
+                    key={tag.id}
+                    onClick={() => {
+                      inputRef.current!.value = `#${tag.name}`;
+                      inputRef.current?.focus();
+                    }}
+                    className="p-3 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg flex items-center w-[280px]"
+                  >
+                    {tag.example_artwork && (
+                      <div className="w-32 h-32 rounded-lg overflow-hidden shadow-lg flex-shrink-0 mr-4">
+                        <img
+                          src={tag.example_artwork.url}
+                          alt={tag.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <span>{tag.name}</span>
+                    {tag.artwork_count && (
+                      <span className="text-sm opacity-70">
+                        ({tag.artwork_count})
+                      </span>
+                    )}
+                  </motion.button>
+                ))
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -185,10 +259,7 @@ function MoreButton() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel >
-            {" "}
-            {user.display_name}{" "}
-          </DropdownMenuLabel>
+          <DropdownMenuLabel> {user.display_name} </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => router.push(`/profile/${user.username ?? user.id}`)}

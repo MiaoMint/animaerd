@@ -4,7 +4,8 @@
     "home": "Home",
     "create": "Create",
     "search": {
-      "placeholder": "Search something here... (Press / to focus)"
+      "placeholder": "Search something here... (Press / to focus)",
+      "popularTags": "Popular Tags"
     },
     "menu": {
       "profile": "Profile",
@@ -31,6 +32,7 @@
     "logout": "Logout",
     "language": "Language",
     "theme": "Theme",
+    "no-more": "No more",
     "auth": {
       "title": "Welcome to Animaerd",
       "description": "Sign in to start your AI art journey",
