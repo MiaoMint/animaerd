@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"sort"
-
+	"entgo.io/ent/dialect/sql"
 	"github.com/MiaoMint/animaerd/dto"
 	"github.com/MiaoMint/animaerd/ent"
+	"github.com/MiaoMint/animaerd/ent/artwork"
 	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
@@ -124,12 +124,14 @@ func DeleteTag(c *fiber.Ctx) error {
 func GetPopularTags(c *fiber.Ctx) error {
 	entClient := ext.EntClient()
 
-	// Get all tags with their artworks, ordered by artwork count
+	// Get top 10 tags ordered by artwork count directly from database
 	tags, err := entClient.Tag.Query().
 		WithArtworks(func(aq *ent.ArtworkQuery) {
-			aq.WithMedia().
+			aq.Order(artwork.ByLikesCount(sql.OrderDesc())).
+				WithMedia().
 				WithLikes()
 		}).
+		Order(tag.ByArtworksCount(sql.OrderDesc())).
 		Limit(10).
 		All(c.Context())
 
@@ -137,23 +139,18 @@ func GetPopularTags(c *fiber.Ctx) error {
 		return c.JSON(result.NewErrorResult("Failed to fetch tags", 500))
 	}
 
-	// Convert to response format and sort by artwork count
+	// Convert to response format
 	var popularTags []dto.PopularTagResponse
 	for _, t := range tags {
 		artworkCount := len(t.Edges.Artworks)
 		if artworkCount == 0 {
-			continue // Skip tags with no artworks
+			continue
 		}
 
-		// Find the artwork with most likes for this tag
+		// Get the most liked artwork (should be the first one due to ordering)
 		var mostLikedArtwork *ent.Artwork
-		maxLikes := -1
-		for _, a := range t.Edges.Artworks {
-			likesCount := len(a.Edges.Likes)
-			if likesCount > maxLikes {
-				maxLikes = likesCount
-				mostLikedArtwork = a
-			}
+		if len(t.Edges.Artworks) > 0 {
+			mostLikedArtwork = t.Edges.Artworks[0]
 		}
 
 		// Create response with example artwork
@@ -177,11 +174,6 @@ func GetPopularTags(c *fiber.Ctx) error {
 
 		popularTags = append(popularTags, tagResp)
 	}
-
-	// Sort tags by artwork count in descending order
-	sort.Slice(popularTags, func(i, j int) bool {
-		return popularTags[i].ArtworkCount > popularTags[j].ArtworkCount
-	})
 
 	return c.JSON(result.NewSuccessResult(popularTags))
 }
