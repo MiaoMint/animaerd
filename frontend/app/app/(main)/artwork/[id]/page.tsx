@@ -8,6 +8,7 @@ import {
   ShareIcon,
   PanelRightClose,
   PanelRightOpen,
+  TrashIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -22,9 +23,11 @@ import ArtworkLoading from "./_components/artwok-loading";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { SearchArtworksGrid } from "@/components/search-artworks-grid";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ArtworkPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
@@ -149,6 +152,23 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
           title: t("Artwork.toast.share"),
         });
       }
+    } catch (error) {
+      toast({
+        title: t("Common.error"),
+        description: `Unknown error: ${error}`,
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(t("Artwork.confirm-delete"))) return;
+    
+    try {
+      await artworkApi.deleteArtwork(Number(params.id));
+      toast({
+        title: t("Artwork.toast.delete-success"),
+      });
+      router.push("/");
     } catch (error) {
       toast({
         title: t("Common.error"),
@@ -282,6 +302,16 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
                     <Button variant="ghost" size="icon" onClick={handleShare}>
                       <ShareIcon className="w-5 h-5" />
                     </Button>
+                    {user && artwork.user.id === user.id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDelete}
+                        className="text-destructive hover:text-destructive/90"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
 

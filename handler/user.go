@@ -15,6 +15,7 @@ import (
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/MiaoMint/animaerd/pkg/storage"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/google/uuid"
 )
 
@@ -209,4 +210,20 @@ func DeleteUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(result.NewSuccessResult(nil))
+}
+
+// GetUserPersona gets the user's persona
+func GetUserPersona(c *fiber.Ctx) error {
+	userId := c.Locals("userId").(float64)
+	log.Info("userId", userId)
+	entClient := ext.EntClient()
+	user, err := entClient.User.Query().Where(user.IDEQ(int(userId))).Only(c.Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result.NewSuccessResult(dto.UserPersonaResponse{
+		PreferredTags: user.PreferredTags,
+		Description:   user.PreferredTagsDescription,
+	}))
 }

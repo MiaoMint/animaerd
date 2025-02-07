@@ -24,3 +24,8 @@ interface UserListResponse {
   page: number;
   size: number;
 }
+
+interface UserPersonaResponse {
+  preferred_tags: string[] | null;
+  description: string;
+}

@@ -71,11 +71,11 @@ const data = {
       url: "/comfyui-nodes",
       icon: Server,
     },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-    },
+    // {
+    //   title: "Settings",
+    //   url: "#",
+    //   icon: Settings2,
+    // },
   ],
   navSecondary: [
     // {

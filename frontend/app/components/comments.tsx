@@ -11,7 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Laugh } from "lucide-react";
+import { Laugh, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -75,6 +75,21 @@ export function Comments({ artworkId }: CommentsProps) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmitComment();
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!confirm(t("delete-confirm"))) return;
+
+    try {
+      await commentApi.deleteComment(artworkId, commentId);
+      await fetchComments();
+      toast({ title: t("delete-success") });
+    } catch (error) {
+      toast({
+        title: t("delete-error"),
+        variant: "destructive",
+      });
     }
   };
 
@@ -173,19 +188,29 @@ export function Comments({ artworkId }: CommentsProps) {
                     </div>
                   </Link>
                 )}
-                {user && (
-                  <button
-                    onClick={() =>
-                      setReplyTo({
-                        id: comment.id,
-                        author: comment.author.display_name,
-                      })
-                    }
-                    className="text-xs text-primary hover:text-primary/80 mt-2"
-                  >
-                    {t("reply")}
-                  </button>
-                )}
+                <div className="flex items-center space-x-4 mt-2">
+                  {user && (
+                    <button
+                      onClick={() =>
+                        setReplyTo({
+                          id: comment.id,
+                          author: comment.author.display_name,
+                        })
+                      }
+                      className="text-xs text-primary hover:text-primary/80"
+                    >
+                      {t("reply")}
+                    </button>
+                  )}
+                  {user && (user.id === comment.author.id) && (
+                    <button
+                      onClick={() => handleDeleteComment(comment.id)}
+                      className="text-xs text-destructive hover:text-destructive/80"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -209,19 +234,29 @@ export function Comments({ artworkId }: CommentsProps) {
                         </span>
                       </div>
                       <p className="text-sm mt-1">{reply.content}</p>
-                      {user && (
-                        <button
-                          onClick={() =>
-                            setReplyTo({
-                              id: comment.id,
-                              author: reply.author.display_name,
-                            })
-                          }
-                          className="text-xs text-primary hover:text-primary/80 mt-2"
-                        >
-                          {t("reply")}
-                        </button>
-                      )}
+                      <div className="flex items-center space-x-4 mt-2">
+                        {user && (
+                          <button
+                            onClick={() =>
+                              setReplyTo({
+                                id: comment.id,
+                                author: reply.author.display_name,
+                              })
+                            }
+                            className="text-xs text-primary hover:text-primary/80"
+                          >
+                            {t("reply")}
+                          </button>
+                        )}
+                        {user && (user.id === reply.author.id) && (
+                          <button
+                            onClick={() => handleDeleteComment(reply.id)}
+                            className="text-xs text-destructive hover:text-destructive/80"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

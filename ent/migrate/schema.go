@@ -221,7 +221,8 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"active", "banned"}, Default: "active"},
 		{Name: "is_favorites_public", Type: field.TypeBool, Default: true},
 		{Name: "is_likes_public", Type: field.TypeBool, Default: true},
-		{Name: "recent_tags", Type: field.TypeJSON, Nullable: true},
+		{Name: "preferred_tags", Type: field.TypeJSON, Nullable: true},
+		{Name: "preferred_tags_description", Type: field.TypeString, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

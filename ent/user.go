@@ -42,8 +42,10 @@ type User struct {
 	IsFavoritesPublic bool `json:"is_favorites_public,omitempty"`
 	// IsLikesPublic holds the value of the "is_likes_public" field.
 	IsLikesPublic bool `json:"is_likes_public,omitempty"`
-	// RecentTags holds the value of the "recent_tags" field.
-	RecentTags []string `json:"recent_tags,omitempty"`
+	// PreferredTags holds the value of the "preferred_tags" field.
+	PreferredTags []string `json:"preferred_tags,omitempty"`
+	// PreferredTagsDescription holds the value of the "preferred_tags_description" field.
+	PreferredTagsDescription string `json:"preferred_tags_description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -128,13 +130,13 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldRecentTags:
+		case user.FieldPreferredTags:
 			values[i] = new([]byte)
 		case user.FieldIsFavoritesPublic, user.FieldIsLikesPublic:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUsername, user.FieldDisplayName, user.FieldAvatar, user.FieldBio, user.FieldProvider, user.FieldProviderAccountID, user.FieldRole, user.FieldStatus:
+		case user.FieldUsername, user.FieldDisplayName, user.FieldAvatar, user.FieldBio, user.FieldProvider, user.FieldProviderAccountID, user.FieldRole, user.FieldStatus, user.FieldPreferredTagsDescription:
 			values[i] = new(sql.NullString)
 		case user.FieldCreateTime, user.FieldUpdateTime:
 			values[i] = new(sql.NullTime)
@@ -231,13 +233,19 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.IsLikesPublic = value.Bool
 			}
-		case user.FieldRecentTags:
+		case user.FieldPreferredTags:
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field recent_tags", values[i])
+				return fmt.Errorf("unexpected type %T for field preferred_tags", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &u.RecentTags); err != nil {
-					return fmt.Errorf("unmarshal field recent_tags: %w", err)
+				if err := json.Unmarshal(*value, &u.PreferredTags); err != nil {
+					return fmt.Errorf("unmarshal field preferred_tags: %w", err)
 				}
+			}
+		case user.FieldPreferredTagsDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field preferred_tags_description", values[i])
+			} else if value.Valid {
+				u.PreferredTagsDescription = value.String
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -341,8 +349,11 @@ func (u *User) String() string {
 	builder.WriteString("is_likes_public=")
 	builder.WriteString(fmt.Sprintf("%v", u.IsLikesPublic))
 	builder.WriteString(", ")
-	builder.WriteString("recent_tags=")
-	builder.WriteString(fmt.Sprintf("%v", u.RecentTags))
+	builder.WriteString("preferred_tags=")
+	builder.WriteString(fmt.Sprintf("%v", u.PreferredTags))
+	builder.WriteString(", ")
+	builder.WriteString("preferred_tags_description=")
+	builder.WriteString(u.PreferredTagsDescription)
 	builder.WriteByte(')')
 	return builder.String()
 }

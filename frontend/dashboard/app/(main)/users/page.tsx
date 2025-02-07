@@ -163,7 +163,7 @@ export default function UsersPage() {
                     {new Date(user.create_time).toLocaleString()}
                   </TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button
+                    {/* <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => {
@@ -172,7 +172,7 @@ export default function UsersPage() {
                       }}
                     >
                       <Pencil className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
                     <Button
                       variant="ghost"
                       size="icon"

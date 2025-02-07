@@ -100,6 +100,11 @@ func IsLikesPublic(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldIsLikesPublic, v))
 }
 
+// PreferredTagsDescription applies equality check predicate on the "preferred_tags_description" field. It's identical to PreferredTagsDescriptionEQ.
+func PreferredTagsDescription(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldPreferredTagsDescription, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreateTime, v))
@@ -625,14 +630,89 @@ func IsLikesPublicNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldIsLikesPublic, v))
 }
 
-// RecentTagsIsNil applies the IsNil predicate on the "recent_tags" field.
-func RecentTagsIsNil() predicate.User {
-	return predicate.User(sql.FieldIsNull(FieldRecentTags))
+// PreferredTagsIsNil applies the IsNil predicate on the "preferred_tags" field.
+func PreferredTagsIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldPreferredTags))
 }
 
-// RecentTagsNotNil applies the NotNil predicate on the "recent_tags" field.
-func RecentTagsNotNil() predicate.User {
-	return predicate.User(sql.FieldNotNull(FieldRecentTags))
+// PreferredTagsNotNil applies the NotNil predicate on the "preferred_tags" field.
+func PreferredTagsNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldPreferredTags))
+}
+
+// PreferredTagsDescriptionEQ applies the EQ predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionNEQ applies the NEQ predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionIn applies the In predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldPreferredTagsDescription, vs...))
+}
+
+// PreferredTagsDescriptionNotIn applies the NotIn predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldPreferredTagsDescription, vs...))
+}
+
+// PreferredTagsDescriptionGT applies the GT predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionGTE applies the GTE predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionLT applies the LT predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionLTE applies the LTE predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionContains applies the Contains predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionHasPrefix applies the HasPrefix predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionHasSuffix applies the HasSuffix predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionIsNil applies the IsNil predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldPreferredTagsDescription))
+}
+
+// PreferredTagsDescriptionNotNil applies the NotNil predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldPreferredTagsDescription))
+}
+
+// PreferredTagsDescriptionEqualFold applies the EqualFold predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldPreferredTagsDescription, v))
+}
+
+// PreferredTagsDescriptionContainsFold applies the ContainsFold predicate on the "preferred_tags_description" field.
+func PreferredTagsDescriptionContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldPreferredTagsDescription, v))
 }
 
 // HasArtworks applies the HasEdge predicate on the "artworks" edge.

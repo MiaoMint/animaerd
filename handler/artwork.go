@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/MiaoMint/animaerd/dto"
@@ -414,4 +415,165 @@ func SearchArtworks(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(result.NewSuccessResult(list))
+}
+
+// GetRecommendedArtworks returns a list of artworks recommended for the user based on their persona
+func GetRecommendedArtworks(c *fiber.Ctx) error {
+	entClient := ext.EntClient()
+	userId := c.Locals("userId").(float64)
+
+	// Get excluded artwork IDs from query
+	excludedIdsStr := c.Query("exclude", "")
+	var excludedIds []int
+	if excludedIdsStr != "" {
+		for _, idStr := range strings.Split(excludedIdsStr, ",") {
+			if id, err := strconv.Atoi(idStr); err == nil {
+				excludedIds = append(excludedIds, id)
+			}
+		}
+	}
+
+	// Get dbUser's preferred tags
+	dbUser, err := entClient.User.Query().
+		Where(user.IDEQ(int(userId))).
+		Only(c.Context())
+	if err != nil {
+		return err
+	}
+
+	// Calculate how many items to fetch for each category (60% persona-based, 40% regular)
+	const totalItems = 20
+	personaBasedCount := (totalItems * 60) / 100 // 60% of total
+
+	var artworks []*ent.Artwork
+
+	// If user has preferred tags, get persona-based recommendations
+	if len(dbUser.PreferredTags) > 0 {
+		personaArtworks, err := entClient.Artwork.Query().
+			Where(
+				artwork.And(
+					artwork.HasTagsWith(
+						tag.NameIn(dbUser.PreferredTags...),
+					),
+					artwork.IDNotIn(excludedIds...),
+				),
+			).
+			Order(ent.Desc(artwork.FieldCreateTime)).
+			WithMedia().
+			WithTags().
+			WithOwner().
+			Limit(personaBasedCount).
+			All(c.Context())
+
+		if err != nil {
+			return err
+		}
+		artworks = append(artworks, personaArtworks...)
+	}
+
+	// Get regular artworks to fill the remaining slots
+	remainingCount := totalItems - len(artworks)
+	if remainingCount > 0 {
+		log.Info(remainingCount)
+		excludedIds = append(excludedIds, getArtworkIds(artworks)...)
+		regularArtworks, err := entClient.Artwork.Query().
+			Where(
+				artwork.And(
+					artwork.IDNotIn(excludedIds...),
+				),
+			).
+			Order(ent.Desc(artwork.FieldCreateTime)).
+			WithMedia().
+			WithTags().
+			WithOwner().
+			Limit(remainingCount).
+			All(c.Context())
+
+		if err != nil {
+			return err
+		}
+		artworks = append(artworks, regularArtworks...)
+	}
+
+	// Transform to response format
+	var list []dto.ArtworkResponse
+	for _, artwork := range artworks {
+		var tags []string
+		for _, tag := range artwork.Edges.Tags {
+			tags = append(tags, tag.Name)
+		}
+
+		list = append(list, dto.ArtworkResponse{
+			ID:            artwork.ID,
+			Title:         artwork.Title,
+			Description:   artwork.Description,
+			URL:           artwork.Edges.Media.URL,
+			Width:         artwork.Edges.Media.Width,
+			Height:        artwork.Edges.Media.Height,
+			PrimaryCorlor: artwork.Edges.Media.PrimaryCorlor,
+			IsAI:          artwork.IsAi,
+			Tags:          tags,
+			User: dto.UserResponse{
+				ID:                artwork.Edges.Owner.ID,
+				Username:          artwork.Edges.Owner.Username,
+				Avatar:            artwork.Edges.Owner.Avatar,
+				DisplayName:       artwork.Edges.Owner.DisplayName,
+				Bio:               artwork.Edges.Owner.Bio,
+				IsFavoritesPublic: artwork.Edges.Owner.IsFavoritesPublic,
+				IsLikesPublic:     artwork.Edges.Owner.IsLikesPublic,
+			},
+			CreatedTime: artwork.CreateTime.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return c.JSON(result.NewSuccessResult(list))
+}
+
+// Helper function to get artwork IDs from a slice of artworks
+func getArtworkIds(artworks []*ent.Artwork) []int {
+	ids := make([]int, len(artworks))
+	for i, a := range artworks {
+		ids[i] = a.ID
+	}
+	return ids
+}
+
+// DeleteArtwork handles the deletion of an artwork by its owner
+func DeleteArtwork(c *fiber.Ctx) error {
+	artworkId, err := c.ParamsInt("id")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid artwork id", 400))
+	}
+
+	userId := int(c.Locals("userId").(float64))
+	isAdmin := c.Locals("isAdmin").(bool)
+	entClient := ext.EntClient()
+
+	if isAdmin {
+		// Admin can delete any artwork
+		err = entClient.Artwork.DeleteOneID(artworkId).Exec(c.Context())
+		if err != nil {
+			return err
+		}
+		return c.JSON(result.NewSuccessResult(nil))
+	}
+
+	// Check if the artwork exists and belongs to the user
+	artwork, err := entClient.Artwork.Query().
+		Where(
+			artwork.ID(artworkId),
+			artwork.HasOwnerWith(user.ID(userId)),
+		).Only(c.Context())
+
+	if err != nil {
+		return err
+	}
+
+	// Delete the artwork
+	err = entClient.Artwork.DeleteOne(artwork).Exec(c.Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result.NewSuccessResult(nil))
 }

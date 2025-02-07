@@ -201,21 +201,41 @@ func (uu *UserUpdate) SetNillableIsLikesPublic(b *bool) *UserUpdate {
 	return uu
 }
 
-// SetRecentTags sets the "recent_tags" field.
-func (uu *UserUpdate) SetRecentTags(s []string) *UserUpdate {
-	uu.mutation.SetRecentTags(s)
+// SetPreferredTags sets the "preferred_tags" field.
+func (uu *UserUpdate) SetPreferredTags(s []string) *UserUpdate {
+	uu.mutation.SetPreferredTags(s)
 	return uu
 }
 
-// AppendRecentTags appends s to the "recent_tags" field.
-func (uu *UserUpdate) AppendRecentTags(s []string) *UserUpdate {
-	uu.mutation.AppendRecentTags(s)
+// AppendPreferredTags appends s to the "preferred_tags" field.
+func (uu *UserUpdate) AppendPreferredTags(s []string) *UserUpdate {
+	uu.mutation.AppendPreferredTags(s)
 	return uu
 }
 
-// ClearRecentTags clears the value of the "recent_tags" field.
-func (uu *UserUpdate) ClearRecentTags() *UserUpdate {
-	uu.mutation.ClearRecentTags()
+// ClearPreferredTags clears the value of the "preferred_tags" field.
+func (uu *UserUpdate) ClearPreferredTags() *UserUpdate {
+	uu.mutation.ClearPreferredTags()
+	return uu
+}
+
+// SetPreferredTagsDescription sets the "preferred_tags_description" field.
+func (uu *UserUpdate) SetPreferredTagsDescription(s string) *UserUpdate {
+	uu.mutation.SetPreferredTagsDescription(s)
+	return uu
+}
+
+// SetNillablePreferredTagsDescription sets the "preferred_tags_description" field if the given value is not nil.
+func (uu *UserUpdate) SetNillablePreferredTagsDescription(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetPreferredTagsDescription(*s)
+	}
+	return uu
+}
+
+// ClearPreferredTagsDescription clears the value of the "preferred_tags_description" field.
+func (uu *UserUpdate) ClearPreferredTagsDescription() *UserUpdate {
+	uu.mutation.ClearPreferredTagsDescription()
 	return uu
 }
 
@@ -553,16 +573,22 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.IsLikesPublic(); ok {
 		_spec.SetField(user.FieldIsLikesPublic, field.TypeBool, value)
 	}
-	if value, ok := uu.mutation.RecentTags(); ok {
-		_spec.SetField(user.FieldRecentTags, field.TypeJSON, value)
+	if value, ok := uu.mutation.PreferredTags(); ok {
+		_spec.SetField(user.FieldPreferredTags, field.TypeJSON, value)
 	}
-	if value, ok := uu.mutation.AppendedRecentTags(); ok {
+	if value, ok := uu.mutation.AppendedPreferredTags(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, user.FieldRecentTags, value)
+			sqljson.Append(u, user.FieldPreferredTags, value)
 		})
 	}
-	if uu.mutation.RecentTagsCleared() {
-		_spec.ClearField(user.FieldRecentTags, field.TypeJSON)
+	if uu.mutation.PreferredTagsCleared() {
+		_spec.ClearField(user.FieldPreferredTags, field.TypeJSON)
+	}
+	if value, ok := uu.mutation.PreferredTagsDescription(); ok {
+		_spec.SetField(user.FieldPreferredTagsDescription, field.TypeString, value)
+	}
+	if uu.mutation.PreferredTagsDescriptionCleared() {
+		_spec.ClearField(user.FieldPreferredTagsDescription, field.TypeString)
 	}
 	if uu.mutation.ArtworksCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1024,21 +1050,41 @@ func (uuo *UserUpdateOne) SetNillableIsLikesPublic(b *bool) *UserUpdateOne {
 	return uuo
 }
 
-// SetRecentTags sets the "recent_tags" field.
-func (uuo *UserUpdateOne) SetRecentTags(s []string) *UserUpdateOne {
-	uuo.mutation.SetRecentTags(s)
+// SetPreferredTags sets the "preferred_tags" field.
+func (uuo *UserUpdateOne) SetPreferredTags(s []string) *UserUpdateOne {
+	uuo.mutation.SetPreferredTags(s)
 	return uuo
 }
 
-// AppendRecentTags appends s to the "recent_tags" field.
-func (uuo *UserUpdateOne) AppendRecentTags(s []string) *UserUpdateOne {
-	uuo.mutation.AppendRecentTags(s)
+// AppendPreferredTags appends s to the "preferred_tags" field.
+func (uuo *UserUpdateOne) AppendPreferredTags(s []string) *UserUpdateOne {
+	uuo.mutation.AppendPreferredTags(s)
 	return uuo
 }
 
-// ClearRecentTags clears the value of the "recent_tags" field.
-func (uuo *UserUpdateOne) ClearRecentTags() *UserUpdateOne {
-	uuo.mutation.ClearRecentTags()
+// ClearPreferredTags clears the value of the "preferred_tags" field.
+func (uuo *UserUpdateOne) ClearPreferredTags() *UserUpdateOne {
+	uuo.mutation.ClearPreferredTags()
+	return uuo
+}
+
+// SetPreferredTagsDescription sets the "preferred_tags_description" field.
+func (uuo *UserUpdateOne) SetPreferredTagsDescription(s string) *UserUpdateOne {
+	uuo.mutation.SetPreferredTagsDescription(s)
+	return uuo
+}
+
+// SetNillablePreferredTagsDescription sets the "preferred_tags_description" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillablePreferredTagsDescription(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetPreferredTagsDescription(*s)
+	}
+	return uuo
+}
+
+// ClearPreferredTagsDescription clears the value of the "preferred_tags_description" field.
+func (uuo *UserUpdateOne) ClearPreferredTagsDescription() *UserUpdateOne {
+	uuo.mutation.ClearPreferredTagsDescription()
 	return uuo
 }
 
@@ -1406,16 +1452,22 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.IsLikesPublic(); ok {
 		_spec.SetField(user.FieldIsLikesPublic, field.TypeBool, value)
 	}
-	if value, ok := uuo.mutation.RecentTags(); ok {
-		_spec.SetField(user.FieldRecentTags, field.TypeJSON, value)
+	if value, ok := uuo.mutation.PreferredTags(); ok {
+		_spec.SetField(user.FieldPreferredTags, field.TypeJSON, value)
 	}
-	if value, ok := uuo.mutation.AppendedRecentTags(); ok {
+	if value, ok := uuo.mutation.AppendedPreferredTags(); ok {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, user.FieldRecentTags, value)
+			sqljson.Append(u, user.FieldPreferredTags, value)
 		})
 	}
-	if uuo.mutation.RecentTagsCleared() {
-		_spec.ClearField(user.FieldRecentTags, field.TypeJSON)
+	if uuo.mutation.PreferredTagsCleared() {
+		_spec.ClearField(user.FieldPreferredTags, field.TypeJSON)
+	}
+	if value, ok := uuo.mutation.PreferredTagsDescription(); ok {
+		_spec.SetField(user.FieldPreferredTagsDescription, field.TypeString, value)
+	}
+	if uuo.mutation.PreferredTagsDescriptionCleared() {
+		_spec.ClearField(user.FieldPreferredTagsDescription, field.TypeString)
 	}
 	if uuo.mutation.ArtworksCleared() {
 		edge := &sqlgraph.EdgeSpec{

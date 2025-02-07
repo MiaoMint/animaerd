@@ -34,4 +34,7 @@ export const artworkApi = {
 
   getArtworkLikeStatus: (id: number) =>
     http.get<BaseResponse<boolean>>(`/artwork/${id}/like`),
+
+  deleteArtwork: (id: number) =>
+    http.delete<BaseResponse<null>>(`/artwork/${id}`),
 };

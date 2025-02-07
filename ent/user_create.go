@@ -174,9 +174,23 @@ func (uc *UserCreate) SetNillableIsLikesPublic(b *bool) *UserCreate {
 	return uc
 }
 
-// SetRecentTags sets the "recent_tags" field.
-func (uc *UserCreate) SetRecentTags(s []string) *UserCreate {
-	uc.mutation.SetRecentTags(s)
+// SetPreferredTags sets the "preferred_tags" field.
+func (uc *UserCreate) SetPreferredTags(s []string) *UserCreate {
+	uc.mutation.SetPreferredTags(s)
+	return uc
+}
+
+// SetPreferredTagsDescription sets the "preferred_tags_description" field.
+func (uc *UserCreate) SetPreferredTagsDescription(s string) *UserCreate {
+	uc.mutation.SetPreferredTagsDescription(s)
+	return uc
+}
+
+// SetNillablePreferredTagsDescription sets the "preferred_tags_description" field if the given value is not nil.
+func (uc *UserCreate) SetNillablePreferredTagsDescription(s *string) *UserCreate {
+	if s != nil {
+		uc.SetPreferredTagsDescription(*s)
+	}
 	return uc
 }
 
@@ -446,9 +460,13 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldIsLikesPublic, field.TypeBool, value)
 		_node.IsLikesPublic = value
 	}
-	if value, ok := uc.mutation.RecentTags(); ok {
-		_spec.SetField(user.FieldRecentTags, field.TypeJSON, value)
-		_node.RecentTags = value
+	if value, ok := uc.mutation.PreferredTags(); ok {
+		_spec.SetField(user.FieldPreferredTags, field.TypeJSON, value)
+		_node.PreferredTags = value
+	}
+	if value, ok := uc.mutation.PreferredTagsDescription(); ok {
+		_spec.SetField(user.FieldPreferredTagsDescription, field.TypeString, value)
+		_node.PreferredTagsDescription = value
 	}
 	if nodes := uc.mutation.ArtworksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

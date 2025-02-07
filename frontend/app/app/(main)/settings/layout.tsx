@@ -27,6 +27,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             <NavButton href="/settings/visibility">
               {t("nav.visibility")}
             </NavButton>
+            <NavButton href="/settings/recommend">
+              {t("nav.recommend")}
+            </NavButton>
           </nav>
 
           {/* Main Content Area */}

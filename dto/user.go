@@ -21,3 +21,9 @@ type UpdateUserRequest struct {
 	IsFavoritesPublic *bool   `json:"is_favorites_public,omitempty"`
 	IsLikesPublic     *bool   `json:"is_likes_public,omitempty"`
 }
+
+
+type UserPersonaResponse struct {
+	PreferredTags []string `json:"preferred_tags"`
+	Description   string   `json:"description"`
+}

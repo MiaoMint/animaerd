@@ -39,8 +39,10 @@ const (
 	FieldIsFavoritesPublic = "is_favorites_public"
 	// FieldIsLikesPublic holds the string denoting the is_likes_public field in the database.
 	FieldIsLikesPublic = "is_likes_public"
-	// FieldRecentTags holds the string denoting the recent_tags field in the database.
-	FieldRecentTags = "recent_tags"
+	// FieldPreferredTags holds the string denoting the preferred_tags field in the database.
+	FieldPreferredTags = "preferred_tags"
+	// FieldPreferredTagsDescription holds the string denoting the preferred_tags_description field in the database.
+	FieldPreferredTagsDescription = "preferred_tags_description"
 	// EdgeArtworks holds the string denoting the artworks edge name in mutations.
 	EdgeArtworks = "artworks"
 	// EdgeLikedArtworks holds the string denoting the liked_artworks edge name in mutations.
@@ -100,7 +102,8 @@ var Columns = []string{
 	FieldStatus,
 	FieldIsFavoritesPublic,
 	FieldIsLikesPublic,
-	FieldRecentTags,
+	FieldPreferredTags,
+	FieldPreferredTagsDescription,
 }
 
 var (
@@ -283,6 +286,11 @@ func ByIsFavoritesPublic(opts ...sql.OrderTermOption) OrderOption {
 // ByIsLikesPublic orders the results by the is_likes_public field.
 func ByIsLikesPublic(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsLikesPublic, opts...).ToFunc()
+}
+
+// ByPreferredTagsDescription orders the results by the preferred_tags_description field.
+func ByPreferredTagsDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPreferredTagsDescription, opts...).ToFunc()
 }
 
 // ByArtworksCount orders the results by artworks count.

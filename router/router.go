@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/MiaoMint/animaerd/config"
+	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/handler"
 	"github.com/MiaoMint/animaerd/pkg/result"
 	"github.com/gofiber/fiber/v2"
@@ -46,11 +47,20 @@ func InitRouter(app *fiber.App) {
 	// 用户相关路由
 	userGroup := app.Group("/user")
 	userGroup.Get("/", handler.GetUser)
+	userGroup.Get("/persona", handler.GetUserPersona)
 	userGroup.Get("/:id", handler.GetUserById)
 	userGroup.Put("/", handler.UpdateUser)
 	userGroup.Put("/avatar", handler.UpdateUserAvatar)
 
+	// 创建触发用户画像生成的中间件
+	triggerUserPersonaMiddleware := func(c *fiber.Ctx) error {
+		userId := c.Locals("userId").(float64)
+		ext.LLMClient().TriggerUserPersonaGeneration(int(userId))
+		return c.Next()
+	}
+
 	// artwork 相关路由
+	artworkGroup.Get("/recommend", handler.GetRecommendedArtworks)
 	artworkGroup.Get("/:id", handler.GetArtwork)
 	artworkGroup.Get("/:id/comments", handler.GetArtworkComments)
 	artworkGroup.Post("/media", handler.UploadMedia)
@@ -58,12 +68,16 @@ func InitRouter(app *fiber.App) {
 	artworkGroup.Post("/media/:hash/info", handler.GenerateMediaMetadata)
 	artworkGroup.Post("/", handler.CreateArtwork)
 	// 评论
-	artworkGroup.Post("/:id/comment", handler.CreateArtworkComment)
-	artworkGroup.Post("/:id/comment/:comment_id", handler.CreateReplyArtworkComment)
+	artworkGroup.Post("/:id/comment", triggerUserPersonaMiddleware, handler.CreateArtworkComment)
+	artworkGroup.Post("/:id/comment/:comment_id", triggerUserPersonaMiddleware, handler.CreateReplyArtworkComment)
 	artworkGroup.Get("/:id/comment/:comment_id", handler.GetArtworkCommentsByChild)
-	artworkGroup.Post("/:id/like", handler.LikeArtwork)
-	artworkGroup.Delete("/:id/like", handler.UnlikeArtwork)
+	artworkGroup.Post("/:id/like", triggerUserPersonaMiddleware, handler.LikeArtwork)
+	artworkGroup.Delete("/:id/like", triggerUserPersonaMiddleware, handler.UnlikeArtwork)
 	artworkGroup.Get("/:id/like", handler.GetArtworkLikeStatus)
+	// 删除作品
+	artworkGroup.Delete("/:id", handler.DeleteArtwork)
+	// 删除评论
+	artworkGroup.Delete("/:id/comment/:comment_id", handler.DeleteComment)
 
 	// style
 	styleGroup := app.Group("/style")

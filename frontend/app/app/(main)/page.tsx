@@ -18,7 +18,6 @@ const homeScrollOffsetAtom = atom(0);
 
 export default function HomePage() {
   const [artworks, setArtworks] = useAtom(homeArtworksAtom);
-  const [page, setPage] = useAtom(homePageAtom);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [scrollOffset, setScrollOffset] = useAtom(homeScrollOffsetAtom);
@@ -33,7 +32,9 @@ export default function HomePage() {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
-      const response = await artworkApi.getArtworks({ page, pageSize: 20 });
+      const response = await artworkApi.getRecommendArtworks({
+        exclude: artworks.map((artwork) => artwork.id).join(","),
+      });
       if (response.data === null) {
         setHasMore(false);
         return;
@@ -45,7 +46,6 @@ export default function HomePage() {
             !prev.some((prevArtwork) => prevArtwork.id === artwork.id)
         ),
       ]);
-      setPage((prev) => prev + 1);
     } catch (error) {
       console.error("Error fetching artworks:", error);
     } finally {

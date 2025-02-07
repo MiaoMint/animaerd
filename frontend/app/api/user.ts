@@ -16,4 +16,7 @@ export const userApi = {
     formData.append("file", file);
     return http.put<BaseResponse<UserResponse>>("/user/avatar", formData);
   },
+
+  getUserPersona: () =>
+    http.get<BaseResponse<UserPersonaResponse>>("/user/persona"),
 };

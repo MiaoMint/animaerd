@@ -5880,45 +5880,46 @@ func (m *TagMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *int
-	create_time           *time.Time
-	update_time           *time.Time
-	username              *string
-	display_name          *string
-	avatar                *string
-	bio                   *string
-	provider              *user.Provider
-	provider_account_id   *string
-	role                  *user.Role
-	status                *user.Status
-	is_favorites_public   *bool
-	is_likes_public       *bool
-	recent_tags           *[]string
-	appendrecent_tags     []string
-	clearedFields         map[string]struct{}
-	artworks              map[int]struct{}
-	removedartworks       map[int]struct{}
-	clearedartworks       bool
-	liked_artworks        map[int]struct{}
-	removedliked_artworks map[int]struct{}
-	clearedliked_artworks bool
-	followers             map[int]struct{}
-	removedfollowers      map[int]struct{}
-	clearedfollowers      bool
-	following             map[int]struct{}
-	removedfollowing      map[int]struct{}
-	clearedfollowing      bool
-	comments              map[int]struct{}
-	removedcomments       map[int]struct{}
-	clearedcomments       bool
-	liked_comments        map[int]struct{}
-	removedliked_comments map[int]struct{}
-	clearedliked_comments bool
-	done                  bool
-	oldValue              func(context.Context) (*User, error)
-	predicates            []predicate.User
+	op                         Op
+	typ                        string
+	id                         *int
+	create_time                *time.Time
+	update_time                *time.Time
+	username                   *string
+	display_name               *string
+	avatar                     *string
+	bio                        *string
+	provider                   *user.Provider
+	provider_account_id        *string
+	role                       *user.Role
+	status                     *user.Status
+	is_favorites_public        *bool
+	is_likes_public            *bool
+	preferred_tags             *[]string
+	appendpreferred_tags       []string
+	preferred_tags_description *string
+	clearedFields              map[string]struct{}
+	artworks                   map[int]struct{}
+	removedartworks            map[int]struct{}
+	clearedartworks            bool
+	liked_artworks             map[int]struct{}
+	removedliked_artworks      map[int]struct{}
+	clearedliked_artworks      bool
+	followers                  map[int]struct{}
+	removedfollowers           map[int]struct{}
+	clearedfollowers           bool
+	following                  map[int]struct{}
+	removedfollowing           map[int]struct{}
+	clearedfollowing           bool
+	comments                   map[int]struct{}
+	removedcomments            map[int]struct{}
+	clearedcomments            bool
+	liked_comments             map[int]struct{}
+	removedliked_comments      map[int]struct{}
+	clearedliked_comments      bool
+	done                       bool
+	oldValue                   func(context.Context) (*User, error)
+	predicates                 []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -6503,69 +6504,118 @@ func (m *UserMutation) ResetIsLikesPublic() {
 	m.is_likes_public = nil
 }
 
-// SetRecentTags sets the "recent_tags" field.
-func (m *UserMutation) SetRecentTags(s []string) {
-	m.recent_tags = &s
-	m.appendrecent_tags = nil
+// SetPreferredTags sets the "preferred_tags" field.
+func (m *UserMutation) SetPreferredTags(s []string) {
+	m.preferred_tags = &s
+	m.appendpreferred_tags = nil
 }
 
-// RecentTags returns the value of the "recent_tags" field in the mutation.
-func (m *UserMutation) RecentTags() (r []string, exists bool) {
-	v := m.recent_tags
+// PreferredTags returns the value of the "preferred_tags" field in the mutation.
+func (m *UserMutation) PreferredTags() (r []string, exists bool) {
+	v := m.preferred_tags
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldRecentTags returns the old "recent_tags" field's value of the User entity.
+// OldPreferredTags returns the old "preferred_tags" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldRecentTags(ctx context.Context) (v []string, err error) {
+func (m *UserMutation) OldPreferredTags(ctx context.Context) (v []string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRecentTags is only allowed on UpdateOne operations")
+		return v, errors.New("OldPreferredTags is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRecentTags requires an ID field in the mutation")
+		return v, errors.New("OldPreferredTags requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRecentTags: %w", err)
+		return v, fmt.Errorf("querying old value for OldPreferredTags: %w", err)
 	}
-	return oldValue.RecentTags, nil
+	return oldValue.PreferredTags, nil
 }
 
-// AppendRecentTags adds s to the "recent_tags" field.
-func (m *UserMutation) AppendRecentTags(s []string) {
-	m.appendrecent_tags = append(m.appendrecent_tags, s...)
+// AppendPreferredTags adds s to the "preferred_tags" field.
+func (m *UserMutation) AppendPreferredTags(s []string) {
+	m.appendpreferred_tags = append(m.appendpreferred_tags, s...)
 }
 
-// AppendedRecentTags returns the list of values that were appended to the "recent_tags" field in this mutation.
-func (m *UserMutation) AppendedRecentTags() ([]string, bool) {
-	if len(m.appendrecent_tags) == 0 {
+// AppendedPreferredTags returns the list of values that were appended to the "preferred_tags" field in this mutation.
+func (m *UserMutation) AppendedPreferredTags() ([]string, bool) {
+	if len(m.appendpreferred_tags) == 0 {
 		return nil, false
 	}
-	return m.appendrecent_tags, true
+	return m.appendpreferred_tags, true
 }
 
-// ClearRecentTags clears the value of the "recent_tags" field.
-func (m *UserMutation) ClearRecentTags() {
-	m.recent_tags = nil
-	m.appendrecent_tags = nil
-	m.clearedFields[user.FieldRecentTags] = struct{}{}
+// ClearPreferredTags clears the value of the "preferred_tags" field.
+func (m *UserMutation) ClearPreferredTags() {
+	m.preferred_tags = nil
+	m.appendpreferred_tags = nil
+	m.clearedFields[user.FieldPreferredTags] = struct{}{}
 }
 
-// RecentTagsCleared returns if the "recent_tags" field was cleared in this mutation.
-func (m *UserMutation) RecentTagsCleared() bool {
-	_, ok := m.clearedFields[user.FieldRecentTags]
+// PreferredTagsCleared returns if the "preferred_tags" field was cleared in this mutation.
+func (m *UserMutation) PreferredTagsCleared() bool {
+	_, ok := m.clearedFields[user.FieldPreferredTags]
 	return ok
 }
 
-// ResetRecentTags resets all changes to the "recent_tags" field.
-func (m *UserMutation) ResetRecentTags() {
-	m.recent_tags = nil
-	m.appendrecent_tags = nil
-	delete(m.clearedFields, user.FieldRecentTags)
+// ResetPreferredTags resets all changes to the "preferred_tags" field.
+func (m *UserMutation) ResetPreferredTags() {
+	m.preferred_tags = nil
+	m.appendpreferred_tags = nil
+	delete(m.clearedFields, user.FieldPreferredTags)
+}
+
+// SetPreferredTagsDescription sets the "preferred_tags_description" field.
+func (m *UserMutation) SetPreferredTagsDescription(s string) {
+	m.preferred_tags_description = &s
+}
+
+// PreferredTagsDescription returns the value of the "preferred_tags_description" field in the mutation.
+func (m *UserMutation) PreferredTagsDescription() (r string, exists bool) {
+	v := m.preferred_tags_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreferredTagsDescription returns the old "preferred_tags_description" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPreferredTagsDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreferredTagsDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreferredTagsDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreferredTagsDescription: %w", err)
+	}
+	return oldValue.PreferredTagsDescription, nil
+}
+
+// ClearPreferredTagsDescription clears the value of the "preferred_tags_description" field.
+func (m *UserMutation) ClearPreferredTagsDescription() {
+	m.preferred_tags_description = nil
+	m.clearedFields[user.FieldPreferredTagsDescription] = struct{}{}
+}
+
+// PreferredTagsDescriptionCleared returns if the "preferred_tags_description" field was cleared in this mutation.
+func (m *UserMutation) PreferredTagsDescriptionCleared() bool {
+	_, ok := m.clearedFields[user.FieldPreferredTagsDescription]
+	return ok
+}
+
+// ResetPreferredTagsDescription resets all changes to the "preferred_tags_description" field.
+func (m *UserMutation) ResetPreferredTagsDescription() {
+	m.preferred_tags_description = nil
+	delete(m.clearedFields, user.FieldPreferredTagsDescription)
 }
 
 // AddArtworkIDs adds the "artworks" edge to the Artwork entity by ids.
@@ -6926,7 +6976,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.create_time != nil {
 		fields = append(fields, user.FieldCreateTime)
 	}
@@ -6963,8 +7013,11 @@ func (m *UserMutation) Fields() []string {
 	if m.is_likes_public != nil {
 		fields = append(fields, user.FieldIsLikesPublic)
 	}
-	if m.recent_tags != nil {
-		fields = append(fields, user.FieldRecentTags)
+	if m.preferred_tags != nil {
+		fields = append(fields, user.FieldPreferredTags)
+	}
+	if m.preferred_tags_description != nil {
+		fields = append(fields, user.FieldPreferredTagsDescription)
 	}
 	return fields
 }
@@ -6998,8 +7051,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.IsFavoritesPublic()
 	case user.FieldIsLikesPublic:
 		return m.IsLikesPublic()
-	case user.FieldRecentTags:
-		return m.RecentTags()
+	case user.FieldPreferredTags:
+		return m.PreferredTags()
+	case user.FieldPreferredTagsDescription:
+		return m.PreferredTagsDescription()
 	}
 	return nil, false
 }
@@ -7033,8 +7088,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldIsFavoritesPublic(ctx)
 	case user.FieldIsLikesPublic:
 		return m.OldIsLikesPublic(ctx)
-	case user.FieldRecentTags:
-		return m.OldRecentTags(ctx)
+	case user.FieldPreferredTags:
+		return m.OldPreferredTags(ctx)
+	case user.FieldPreferredTagsDescription:
+		return m.OldPreferredTagsDescription(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -7128,12 +7185,19 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIsLikesPublic(v)
 		return nil
-	case user.FieldRecentTags:
+	case user.FieldPreferredTags:
 		v, ok := value.([]string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetRecentTags(v)
+		m.SetPreferredTags(v)
+		return nil
+	case user.FieldPreferredTagsDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreferredTagsDescription(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -7177,8 +7241,11 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldBio) {
 		fields = append(fields, user.FieldBio)
 	}
-	if m.FieldCleared(user.FieldRecentTags) {
-		fields = append(fields, user.FieldRecentTags)
+	if m.FieldCleared(user.FieldPreferredTags) {
+		fields = append(fields, user.FieldPreferredTags)
+	}
+	if m.FieldCleared(user.FieldPreferredTagsDescription) {
+		fields = append(fields, user.FieldPreferredTagsDescription)
 	}
 	return fields
 }
@@ -7206,8 +7273,11 @@ func (m *UserMutation) ClearField(name string) error {
 	case user.FieldBio:
 		m.ClearBio()
 		return nil
-	case user.FieldRecentTags:
-		m.ClearRecentTags()
+	case user.FieldPreferredTags:
+		m.ClearPreferredTags()
+		return nil
+	case user.FieldPreferredTagsDescription:
+		m.ClearPreferredTagsDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -7253,8 +7323,11 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldIsLikesPublic:
 		m.ResetIsLikesPublic()
 		return nil
-	case user.FieldRecentTags:
-		m.ResetRecentTags()
+	case user.FieldPreferredTags:
+		m.ResetPreferredTags()
+		return nil
+	case user.FieldPreferredTagsDescription:
+		m.ResetPreferredTagsDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

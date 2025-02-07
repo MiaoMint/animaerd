@@ -36,8 +36,10 @@ func (User) Fields() []ent.Field {
 		// 是否公开用户喜欢的作品显示
 		field.Bool("is_likes_public").
 			Default(true),
-		// 用户最近观看作品的特点tag, 用于推荐
-		field.Strings("recent_tags").
+		// 用户like的作品的特点tag, 用于推荐
+		field.Strings("preferred_tags").
+			Optional(),
+		field.String("preferred_tags_description").
 			Optional(),
 	}
 }

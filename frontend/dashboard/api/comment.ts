@@ -22,4 +22,9 @@ export const commentApi = {
       `/artwork/${artworkId}/comment/${commentId}`,
       data
     ),
+
+  deleteComment: (artworkId: number, commentId: number) =>
+    http.delete<BaseResponse<null>>(
+      `/artwork/${artworkId}/comment/${commentId}`
+    ),
 };

@@ -372,3 +372,47 @@ func CreateReplyArtworkComment(c *fiber.Ctx) error {
 
 	return c.JSON(result.NewSuccessResult(comment.ID))
 }
+
+// DeleteComment handles the deletion of a comment
+func DeleteComment(c *fiber.Ctx) error {
+	artworkId, err := c.ParamsInt("id")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid artwork id", 400))
+	}
+
+	commentId, err := c.ParamsInt("comment_id")
+	if err != nil {
+		return c.JSON(result.NewErrorResult("Invalid comment id", 400))
+	}
+
+	userId := int(c.Locals("userId").(float64))
+	isAdmin := c.Locals("isAdmin").(bool)
+	entClient := ext.EntClient()
+
+	// Get the comment
+	comment, err := entClient.Comment.Query().
+		Where(
+			comment.ID(commentId),
+			comment.HasArtworkWith(artwork.ID(artworkId)),
+		).Only(c.Context())
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return c.JSON(result.NewErrorResult("Comment not found", 404))
+		}
+		return err
+	}
+
+	// Check if user has permission to delete (either admin or comment author)
+	if !isAdmin && comment.Edges.Author.ID != userId {
+		return c.JSON(result.NewErrorResult("You don't have permission to delete this comment", 403))
+	}
+
+	// Delete the comment
+	err = entClient.Comment.DeleteOne(comment).Exec(c.Context())
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(result.NewSuccessResult("Comment deleted successfully"))
+}

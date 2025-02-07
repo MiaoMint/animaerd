@@ -158,7 +158,8 @@
     "subtitle": "管理你的账户设置和偏好",
     "nav": {
       "profile": "编辑个人资料",
-      "visibility": "个人资料可见性"
+      "visibility": "个人资料可见性",
+      "recommend": "AI智能推荐"
     },
     "profile": {
       "title": "编辑个人资料",
@@ -192,6 +193,16 @@
         }
       },
       "submit": "更新可见性"
+    },
+    "recommend": {
+      "title": "AI智能推荐",
+      "subtitle": "你的个性化AI推荐",
+      "persona": {
+        "title": "你的艺术画像",
+        "tags": "偏好艺术标签",
+        "empty": "请浏览更多作品, 以生成你的艺术画像来获取更好的推荐"
+      },
+      "description": "你的艺术画像是基于你与艺术作品的互动自动生成的。它帮助我们提供更符合你品味的推荐。"
     }
   },
   "Artwork": {
@@ -199,11 +210,13 @@
     "show-full-image": "查看完整图片",
     "likes": "喜欢",
     "details": "详情",
+    "confirm-delete": "确定要删除这个作品吗？",
     "toast": {
       "like": "作品已喜欢",
       "unlike": "作品已取消喜欢",
       "download": "正在下载图片...",
-      "share": "链接已复制到剪贴板"
+      "share": "链接已复制到剪贴板",
+      "delete-success": "作品已删除"
     }
   },
   "Comments": {
@@ -211,7 +224,10 @@
     "placeholder": "添加评论...",
     "reply": "回复",
     "reply-to": "回复给 {username}",
-    "sign-in-to-comment": "请登录以评论"
+    "sign-in-to-comment": "请登录以评论",
+    "delete-confirm": "确定要删除这条评论吗？",
+    "delete-success": "评论已删除",
+    "delete-error": "删除评论失败"
   },
   "Profile": {
     "edit": "编辑个人资料",

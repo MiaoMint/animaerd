@@ -72,7 +72,11 @@ export default function ProfilePage({
               <TabsTrigger value="comments">
                 {t("Profile.tabs.comments")}
               </TabsTrigger>
-              <TabsTrigger value="likes">{t("Profile.tabs.likes")}</TabsTrigger>
+              {(isOwner || data?.is_likes_public) && (
+                <TabsTrigger value="likes">
+                  {t("Profile.tabs.likes")}
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
           <TabsContent value="artworks">

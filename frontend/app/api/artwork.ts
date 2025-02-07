@@ -41,6 +41,10 @@ export const artworkApi = {
       tags,
     }),
 
+  getRecommendArtworks: ({ exclude }: { exclude: string }) =>
+    http.get<BaseResponse<ArtworkResponse[]>>(`/artwork/recommend`, {
+      exclude,
+    }),
   getArtworkById: (id: number) =>
     http.get<BaseResponse<ArtworkResponse>>(`/artwork/${id}`),
 
@@ -55,4 +59,7 @@ export const artworkApi = {
 
   getArtworkLikeStatus: (id: number) =>
     http.get<BaseResponse<boolean>>(`/artwork/${id}/like`),
+
+  deleteArtwork: (id: number) =>
+    http.delete<BaseResponse<null>>(`/artwork/${id}`),
 };
