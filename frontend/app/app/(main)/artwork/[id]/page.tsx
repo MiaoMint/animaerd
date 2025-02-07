@@ -21,7 +21,7 @@ import { Comments } from "@/components/comments";
 import ArtworkLoading from "./_components/artwok-loading";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { SearchArtworksGrid } from "../../search/[q]/page";
+import { SearchArtworksGrid } from "@/components/search-artworks-grid";
 
 export default function ArtworkPage({ params }: { params: { id: string } }) {
   const router = useRouter();
