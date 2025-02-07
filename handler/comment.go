@@ -208,7 +208,7 @@ func CreateArtworkComment(c *fiber.Ctx) error {
 			return
 		}
 
-		prompt := strings.ReplaceAll(workflow.JSON, "{prompt}", fmt.Sprintf("%s %s", res.Prompt, parentArtrotk.Description))
+		prompt := strings.ReplaceAll(workflow.JSON, "{prompt}", fmt.Sprintf("%s, %s", res.Prompt, parentArtrotk.Description))
 		prompt = strings.ReplaceAll(prompt, "{width}", fmt.Sprint(res.Width))
 		prompt = strings.ReplaceAll(prompt, "{imageInput}", fmt.Sprint(res.ArtworkImageUrl))
 		prompt = strings.ReplaceAll(prompt, "{height}", fmt.Sprint(res.Height))
@@ -223,7 +223,7 @@ func CreateArtworkComment(c *fiber.Ctx) error {
 			return
 		}
 
-		timeout := time.After(1 * time.Minute)
+		timeout := time.After(5 * time.Minute)
 		for {
 			select {
 			case <-timeout:
