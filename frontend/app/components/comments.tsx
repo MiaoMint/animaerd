@@ -161,7 +161,7 @@ export function Comments({ artworkId }: CommentsProps) {
                     <img
                       src={comment.artwork.url}
                       alt={comment.artwork.title}
-                      className="size-20 rounded-md"
+                      className="size-20 rounded-md object-cover"
                     />
                     <div>
                       <p className="text-sm font-medium">

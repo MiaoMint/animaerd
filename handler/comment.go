@@ -10,6 +10,7 @@ import (
 	"github.com/MiaoMint/animaerd/ent"
 	"github.com/MiaoMint/animaerd/ent/artwork"
 	"github.com/MiaoMint/animaerd/ent/comment"
+	"github.com/MiaoMint/animaerd/ent/tag"
 	"github.com/MiaoMint/animaerd/ent/workflow"
 	"github.com/MiaoMint/animaerd/ext"
 	"github.com/MiaoMint/animaerd/pkg/result"
@@ -181,7 +182,7 @@ func CreateArtworkComment(c *fiber.Ctx) error {
 		return c.JSON(result.NewErrorResult("Failed to create comment", 500))
 	}
 
-	_, err = entClient.Artwork.UpdateOneID(artworkId).AddCommentIDs(comment.ID).Save(c.Context())
+	parentArtrotk, err := entClient.Artwork.UpdateOneID(artworkId).AddCommentIDs(comment.ID).Save(c.Context())
 	if err != nil {
 		return c.JSON(result.NewErrorResult("Failed to add comment to artwork", 500))
 	}
@@ -207,7 +208,7 @@ func CreateArtworkComment(c *fiber.Ctx) error {
 			return
 		}
 
-		prompt := strings.ReplaceAll(workflow.JSON, "{prompt}", res.Prompt)
+		prompt := strings.ReplaceAll(workflow.JSON, "{prompt}", fmt.Sprintf("%s %s", res.Prompt, parentArtrotk.Description))
 		prompt = strings.ReplaceAll(prompt, "{width}", fmt.Sprint(res.Width))
 		prompt = strings.ReplaceAll(prompt, "{imageInput}", fmt.Sprint(res.ArtworkImageUrl))
 		prompt = strings.ReplaceAll(prompt, "{height}", fmt.Sprint(res.Height))
@@ -285,6 +286,38 @@ func CreateArtworkComment(c *fiber.Ctx) error {
 					log.Error("Failed to update comment", err)
 					return
 				}
+
+				// Save AI tags
+				tagIds := []int{}
+				for _, t := range metadata.Tags {
+					findTag, err := entClient.Tag.Query().
+						Where(tag.And(tag.NameEQ(t), tag.TypeEQ(tag.TypeAi))).
+						Only(context.Background())
+
+					if err != nil {
+						if ent.IsNotFound(err) {
+							findTag, err = entClient.Tag.Create().
+								SetName(t).
+								SetType(tag.TypeUser).
+								Save(context.Background())
+						}
+						if err != nil {
+							log.Errorw("Failed to create tag", err)
+							continue
+						}
+					}
+
+					tagIds = append(tagIds, findTag.ID)
+				}
+
+				_, err = entClient.Artwork.UpdateOneID(artwork.ID).
+					AddTagIDs(tagIds...).
+					Save(context.Background())
+
+				if err != nil {
+					log.Errorw("Failed to save AI tags", err)
+				}
+
 				return // Exit after successful processing
 			}
 		}

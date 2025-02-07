@@ -21,6 +21,7 @@ import { Comments } from "@/components/comments";
 import ArtworkLoading from "./_components/artwok-loading";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { SearchArtworksGrid } from "../../search/[q]/page";
 
 export default function ArtworkPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -250,7 +251,9 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
                       </Link>
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold line-clamp-2">{artwork.title}</h1>
+                      <h1 className="text-xl font-bold line-clamp-2">
+                        {artwork.title}
+                      </h1>
                       <Link href={`/profile/${artwork.user.username}`}>
                         <p className="text-sm text-muted-foreground">
                           {artwork.user.username}
@@ -302,12 +305,13 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {artwork.tags.map((tag) => (
-                        <span
+                        <Link
                           key={tag}
+                          href={`/search/tag(${tag})`}
                           className="bg-secondary/50 px-3 py-1 rounded-full text-sm hover:bg-secondary/70 transition-colors cursor-pointer"
                         >
                           {tag}
-                        </span>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -321,7 +325,9 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold mb-6">{t("Artwork.related")}</h2>
-          <ArtworkGrid />
+          <SearchArtworksGrid
+            q={artwork.tags.length == 0 ? "" : `tag(${artwork.tags[0]})`}
+          />
         </div>
       </div>
     </div>

@@ -132,7 +132,7 @@ func GetPopularTags(c *fiber.Ctx) error {
 				WithLikes()
 		}).
 		Order(tag.ByArtworksCount(sql.OrderDesc())).
-		Limit(10).
+		Limit(12).
 		All(c.Context())
 
 	if err != nil {

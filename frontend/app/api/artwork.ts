@@ -23,6 +23,24 @@ export const artworkApi = {
       commentGenerate,
     }),
 
+  searchArtworks: ({
+    page,
+    pageSize,
+    q,
+    tags,
+  }: {
+    page: number;
+    pageSize: number;
+    q?: string;
+    tags?: string;
+  }) =>
+    http.get<BaseResponse<ArtworkResponse[]>>(`/artwork/search`, {
+      pageSize,
+      page,
+      q,
+      tags,
+    }),
+
   getArtworkById: (id: number) =>
     http.get<BaseResponse<ArtworkResponse>>(`/artwork/${id}`),
 

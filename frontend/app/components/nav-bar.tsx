@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "./ui/button";
-import { ChevronDown, User, Menu } from "lucide-react";
+import { ChevronDown, User, Menu, Search } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
@@ -134,10 +134,19 @@ function SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
   const t = useTranslations("Nav");
   const [isFocused, setIsFocused] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["popularTags"],
     queryFn: tagApi.getPopularTags,
   });
+
+  const handleSearch = () => {
+    const value = inputRef.current?.value || "";
+    if (!value.trim()) return;
+    router.push(`/search/${value}`);
+    setIsFocused(false);
+  };
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
@@ -156,13 +165,30 @@ function SearchBox() {
 
   return (
     <div className="relative">
-      <input
-        ref={inputRef}
-        className="size-full h-12 rounded-full px-4 bg-card/30 hover:bg-card/90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        placeholder={t("search.placeholder")}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSearch();
+        }}
+      >
+        <input
+          ref={inputRef}
+          className="size-full h-12 rounded-full px-4 bg-card/30 hover:bg-card/90 outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          placeholder={t("search.placeholder")}
+          onFocus={() => setIsFocused(true)}
+          onBlur={(e) => {
+            setIsFocused(false);
+          }}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-2 top-1/2 -translate-y-1/2"
+          onClick={handleSearch}
+        >
+          <Search className="size-4" />
+        </Button>
+      </form>
       <AnimatePresence>
         {isFocused && (
           <motion.div
@@ -172,15 +198,17 @@ function SearchBox() {
             transition={{ duration: 0.2 }}
             className="absolute top-full left-0 right-0 mt-2 bg-card border-t p-4 z-10 rounded-lg"
           >
-            <h2 className="text-lg font-bold mb-4">{t("search.popularTags")}</h2>
-            <motion.div 
+            <h2 className="text-lg font-bold mb-4">
+              {t("search.popularTags")}
+            </h2>
+            <motion.div
               className="flex flex-wrap gap-2"
               variants={{
                 show: {
                   transition: {
-                    staggerChildren: 0.05
-                  }
-                }
+                    staggerChildren: 0.05,
+                  },
+                },
               }}
               initial="hidden"
               animate="show"
@@ -194,12 +222,12 @@ function SearchBox() {
                   <motion.button
                     variants={{
                       hidden: { opacity: 0, y: 20 },
-                      show: { opacity: 1, y: 0 }
+                      show: { opacity: 1, y: 0 },
                     }}
                     key={tag.id}
                     onClick={() => {
-                      inputRef.current!.value = `#${tag.name}`;
-                      inputRef.current?.focus();
+                      inputRef.current!.value = `tag(${tag.name})`;
+                      handleSearch();
                     }}
                     className="p-3 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg flex items-center w-[280px]"
                   >

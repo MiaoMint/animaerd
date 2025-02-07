@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"net/url"
 	"strings"
 
 	"github.com/MiaoMint/animaerd/dto"
@@ -354,6 +355,11 @@ func SearchArtworks(c *fiber.Ctx) error {
 
 	// Add tags filter if tags are provided
 	if tags != "" {
+		// 将 tag 字符串url解码
+		tags, err := url.QueryUnescape(tags)
+		if err != nil {
+			return err
+		}
 		tagsList := strings.Split(tags, ",")
 		if len(tagsList) > 0 {
 			artworkQuery = artworkQuery.Where(
@@ -373,8 +379,7 @@ func SearchArtworks(c *fiber.Ctx) error {
 	// Execute the query
 	artworks, err := artworkQuery.All(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).
-			JSON(result.NewErrorResult("Failed to search artworks", fiber.StatusInternalServerError))
+		return err
 	}
 
 	// Transform the results

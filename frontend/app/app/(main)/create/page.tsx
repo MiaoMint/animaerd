@@ -120,7 +120,7 @@ export default function CreatePage() {
     if (hash) {
       getMetadata();
     }
-  }, [hash]);
+  }, [form, hash]);
 
   const handleRetry = () => {
     setIsUploadError(false);
