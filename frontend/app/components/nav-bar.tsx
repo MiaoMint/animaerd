@@ -274,7 +274,10 @@ function MoreButton() {
   const handleToAdminDashboard = () => {
     const token = tokenStorage.get();
     if (token) {
-      window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/admin?token=${token}`;
+      window.open(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/admin?token=${token}`,
+        "_blank"
+      );
     }
   };
 

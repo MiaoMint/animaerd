@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Animaerd",
+  title: "Dashboard - Animaerd",
   description: "Animaerd",
 };
 

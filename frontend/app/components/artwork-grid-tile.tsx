@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { MouseDownEvent } from "emoji-picker-react/dist/config/config";
 
 const calculateTileHeight = (
   artworkWidth: number,
@@ -54,6 +55,19 @@ export default function ArtworkGridTile({
     return () => window.removeEventListener("resize", handleResize);
   }, [artwork.width, artwork.height]);
 
+  const handleDownload = () => {
+    const a = document.createElement("a");
+    a.href = artwork!.url;
+    a.target = "_blank";
+    a.download = `${artwork!.title}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    // toast({
+    //   title: t("Artwork.toast.download"),
+    // });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -82,7 +96,13 @@ export default function ArtworkGridTile({
       )}
 
       <div className="absolute inset-2 rounded-lg bg-black bg-opacity-50 text-white opacity-0 group-hover:opacity-100 transition-opacity p-2">
-        <Button size="icon">
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDownload();
+          }}
+          size="icon"
+        >
           <Download className="w-4 h-4" />
         </Button>
       </div>

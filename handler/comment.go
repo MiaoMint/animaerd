@@ -394,7 +394,9 @@ func DeleteComment(c *fiber.Ctx) error {
 		Where(
 			comment.ID(commentId),
 			comment.HasArtworkWith(artwork.ID(artworkId)),
-		).Only(c.Context())
+		).
+		WithAuthor().
+		Only(c.Context())
 
 	if err != nil {
 		if ent.IsNotFound(err) {

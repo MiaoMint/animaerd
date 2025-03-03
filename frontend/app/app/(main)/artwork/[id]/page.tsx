@@ -117,19 +117,16 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(artwork!.url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
+      a.href = artwork!.url;
+      a.target = "_blank";
       a.download = `${artwork!.title}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast({
-        title: t("Artwork.toast.download"),
-      });
+      // toast({
+      //   title: t("Artwork.toast.download"),
+      // });
     } catch (error) {
       toast({
         title: t("Common.error"),
@@ -162,7 +159,7 @@ export default function ArtworkPage({ params }: { params: { id: string } }) {
 
   const handleDelete = async () => {
     if (!confirm(t("Artwork.confirm-delete"))) return;
-    
+
     try {
       await artworkApi.deleteArtwork(Number(params.id));
       toast({
